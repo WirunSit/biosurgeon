@@ -1,0 +1,15 @@
+case_id,object_id,z_anatomy_name,max_tris,color,out_file
+digestive-02,liver,Liver,8000,#8b3a2e,liver.glb
+digestive-02,gallbladder,Gallbladder,3000,#5f8f4e,gallbladder.glb
+respiratory-02,lobe_upper,Superior lobe of right lung,6000,#e8a0a0,lung_r_upper.glb
+respiratory-02,lobe_middle,Middle lobe of right lung,4000,#e8a0a0,lung_r_middle.glb
+respiratory-02,lobe_lower,Inferior lobe of right lung,6000,#e8a0a0,lung_r_lower.glb
+circulatory-01,heart,Heart,10000,#b5414a,heart.glb
+immune-02,spleen,Spleen,4000,#6e2636,spleen.glb
+immune-02,stomach,Stomach,6000,#d9928a,stomach.glb
+excretory-02,kidney,Right kidney,5000,#cdb2a8,kidney.glb
+excretory-02,bladder,Urinary bladder,3000,#e6c0b4,bladder.glb
+endocrine-01,lobe_R,Right lobe of thyroid gland,2500,#a8424a,thyroid_lobe.glb
+reproductive-01,uterus,Uterus,4000,#d9a09a,uterus.glb
+reproductive-01,ovary_R,Right ovary,1500,#ecdcd0,ovary.glb
+reproductive-02,testis_L,Left testis,2000,#d99aa0,testis.glb

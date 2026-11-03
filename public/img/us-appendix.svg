@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์: ไส้ติ่งบวมโต</title>
+  <defs>
+    <filter id="speckle" x="0" y="0" width="100%" height="100%">
+      <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7" result="n"/>
+      <feColorMatrix in="n" type="matrix" values="0 0 0 0 0.62  0 0 0 0 0.62  0 0 0 0 0.62  0 0 0 1.6 -0.55"/>
+    </filter>
+    <clipPath id="fan"><path d="M210 22 L270 22 L430 300 L50 300 Z"/></clipPath>
+    <radialGradient id="tissue" cx="50%" cy="10%" r="95%">
+      <stop offset="0" stop-color="#6b6b6b"/>
+      <stop offset="1" stop-color="#2a2a2a"/>
+    </radialGradient>
+  </defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <g clip-path="url(#fan)">
+    <rect width="480" height="340" fill="url(#tissue)"/>
+    <rect width="480" height="340" filter="url(#speckle)" opacity="0.9"/>
+    <!-- ชั้นผนังหน้าท้อง -->
+    <path d="M40 62 Q240 52 440 62" stroke="#cfcfcf" stroke-width="5" fill="none" opacity="0.8"/>
+    <path d="M40 92 Q240 84 440 92" stroke="#a9a9a9" stroke-width="3" fill="none" opacity="0.7"/>
+    <!-- ของเหลวรอบไส้ติ่ง -->
+    <ellipse cx="236" cy="178" rx="128" ry="44" fill="#0b0b0b" opacity="0.65"/>
+    <!-- ไส้ติ่ง แนวยาว: ผนังสว่าง ภายในมืด -->
+    <path d="M118 182 Q190 150 262 166 Q322 178 350 170" stroke="#e8e8e8" stroke-width="30" fill="none" stroke-linecap="round"/>
+    <path d="M118 182 Q190 150 262 166 Q322 178 350 170" stroke="#1b1b1b" stroke-width="17" fill="none" stroke-linecap="round"/>
+    <path d="M118 182 Q190 150 262 166 Q322 178 350 170" stroke="#5a5a5a" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="6 7"/>
+  </g>
+  <path d="M210 22 L270 22 L430 300 L50 300 Z" fill="none" stroke="#3a3a3a" stroke-width="1.5"/>
+  <!-- เส้นวัดขนาด -->
+  <g stroke="#ffd84d" stroke-width="2">
+    <line x1="262" y1="143" x2="262" y2="190"/>
+    <line x1="254" y1="143" x2="270" y2="143"/>
+    <line x1="254" y1="190" x2="270" y2="190"/>
+  </g>
+  <text x="276" y="150" fill="#ffd84d" font-size="17" font-weight="700">10 มม.</text>
+  <text x="276" y="168" fill="#ffd84d" font-size="12">(ปกติ ≤ 6 มม.)</text>
+  <!-- ป้ายชี้ -->
+  <g fill="#7ee8ff" stroke="#7ee8ff" font-size="15">
+    <line x1="150" y1="118" x2="168" y2="152" stroke-width="2"/>
+    <path d="M168 152 l-9 -4 l6 -6 z" stroke="none"/>
+    <text x="60" y="112" stroke="none" font-weight="700">ไส้ติ่งบวม ผนังหนา</text>
+    <line x1="340" y1="246" x2="318" y2="214" stroke-width="2"/>
+    <path d="M318 214 l9 3 l-6 6 z" stroke="none"/>
+    <text x="300" y="266" stroke="none">ของเหลวรอบไส้ติ่ง</text>
+  </g>
+  <text x="14" y="26" fill="#9ad" font-size="13">RLQ • แนวยาว</text>
+  <text x="14" y="330" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง)</text>
+</svg>

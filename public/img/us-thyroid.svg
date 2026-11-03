@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์คอ: ต่อมไทรอยด์โตหลายก้อน</title>
+  <defs>
+    <filter id="sp"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="5"/><feColorMatrix type="matrix" values="0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 1.6 -0.55"/></filter>
+  </defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <rect x="20" y="40" width="440" height="250" fill="#454545"/>
+  <rect x="20" y="40" width="440" height="250" filter="url(#sp)" opacity="0.9"/>
+  <path d="M20 66 H460" stroke="#cfcfcf" stroke-width="3" opacity="0.5"/>
+  <path d="M60 150 Q150 70 230 140 Q240 150 250 140 Q330 70 420 150 Q420 230 330 236 Q250 220 240 190 Q230 220 150 236 Q60 230 60 150 Z" fill="#8a8a8a"/>
+  <circle cx="240" cy="210" r="34" fill="#151515" stroke="#e9e9e9" stroke-width="5"/>
+  <g fill="#bdbdbd" stroke="#e8e8e8" stroke-width="2"><circle cx="130" cy="160" r="22"/><circle cx="170" cy="200" r="14"/><circle cx="340" cy="156" r="26"/><circle cx="310" cy="204" r="12"/></g>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="80" y1="270" x2="128" y2="180" stroke-width="2"/><text x="30" y="286" stroke="none" font-weight="700">ก้อนหลายก้อนทั้งสองกลีบ</text>
+    <line x1="300" y1="290" x2="250" y2="240" stroke-width="2"/><text x="290" y="306" stroke="none">หลอดลม (อยู่ตรงกลาง)</text>
+    <text x="30" y="60" stroke="none">กลีบขวา</text><text x="400" y="60" stroke="none">กลีบซ้าย</text>
+  </g>
+  <text x="14" y="330" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง) • ขวาของผู้ป่วยอยู่ซ้ายของภาพ</text>
+</svg>

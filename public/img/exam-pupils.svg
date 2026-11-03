@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>ตรวจรูม่านตาด้วยไฟฉาย</title>
+  <rect width="600" height="300" fill="#e9d5c4"/>
+  <path d="M40 150 Q150 60 260 150 Q150 240 40 150 Z" fill="#fff" stroke="#8a6a55" stroke-width="4"/>
+  <path d="M340 150 Q450 60 560 150 Q450 240 340 150 Z" fill="#fff" stroke="#8a6a55" stroke-width="4"/>
+  <circle cx="150" cy="150" r="46" fill="#6b4a2f"/>
+  <circle cx="450" cy="150" r="46" fill="#6b4a2f"/>
+  <circle cx="150" cy="150" r="12" fill="#0b0b0b"/>
+  <circle cx="450" cy="150" r="30" fill="#0b0b0b"/>
+  <circle cx="140" cy="140" r="5" fill="#fff" opacity="0.8"/>
+  <circle cx="440" cy="140" r="5" fill="#fff" opacity="0.8"/>
+  <path d="M30 120 Q150 30 270 120" stroke="#4a3426" stroke-width="7" fill="none"/>
+  <path d="M330 120 Q450 30 570 120" stroke="#4a3426" stroke-width="7" fill="none"/>
+  <g font-size="16" fill="#334155" text-anchor="middle">
+    <text x="150" y="262">ตาขวาของผู้ป่วย</text>
+    <text x="450" y="262">ตาซ้ายของผู้ป่วย</text>
+  </g>
+  <text x="300" y="30" font-size="15" fill="#475569" text-anchor="middle">ส่องไฟฉายทีละข้าง แล้วคลิกรูม่านตาที่ผิดปกติ</text>
+</svg>

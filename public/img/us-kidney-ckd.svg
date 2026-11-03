@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์: ไตฝ่อจากไตวายเรื้อรัง</title>
+  <defs>
+    <filter id="sp"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="7"/><feColorMatrix type="matrix" values="0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 1.6 -0.55"/></filter>
+    <clipPath id="fanL"><path d="M95 30 L145 30 L225 290 L15 290 Z"/></clipPath>
+    <clipPath id="fanR"><path d="M335 30 L385 30 L465 290 L255 290 Z"/></clipPath>
+  </defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <g clip-path="url(#fanL)">
+    <rect width="480" height="340" fill="#4a4a4a"/><rect width="480" height="340" filter="url(#sp)" opacity="0.9"/>
+    <ellipse cx="120" cy="170" rx="80" ry="40" fill="#d0d0d0"/>
+    <ellipse cx="120" cy="170" rx="72" ry="34" fill="#8a8a8a"/>
+    <ellipse cx="120" cy="170" rx="28" ry="10" fill="#e8e8e8"/>
+  </g>
+  <g clip-path="url(#fanR)">
+    <rect width="480" height="340" fill="#4a4a4a"/><rect width="480" height="340" filter="url(#sp)" opacity="0.9"/>
+    <ellipse cx="360" cy="170" rx="46" ry="24" fill="#d8d8d8"/>
+    <ellipse cx="360" cy="170" rx="40" ry="19" fill="#b8b8b8"/>
+    <ellipse cx="360" cy="170" rx="16" ry="6" fill="#ededed"/>
+  </g>
+  <g fill="#7ee8ff" font-size="14">
+    <text x="40" y="24">ไตคนปกติ (เปรียบเทียบ) ~11 ซม.</text>
+    <text x="270" y="24">ไตผู้ป่วย ~7 ซม.</text>
+    <text x="262" y="246">• ไตเล็กลง เนื้อไตบาง</text>
+    <text x="262" y="266">• เนื้อไตสว่างขึ้น (เป็นพังผืด)</text>
+    <text x="262" y="286">• ไม่พบนิ่ว</text>
+  </g>
+  <text x="14" y="330" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง)</text>
+</svg>

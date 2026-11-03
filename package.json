@@ -1,0 +1,21 @@
+{
+  "name": "biosurgeon",
+  "private": true,
+  "version": "0.1.0",
+  "description": "BioSurgeon: ศัลยแพทย์ชีววิทยา — ต้นแบบเกมจำลองการผ่าตัด 3 มิติ สำหรับชีววิทยา ม.ปลาย",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "three": "^0.187.0"
+  },
+  "devDependencies": {
+    "@types/three": "^0.187.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5"
+  }
+}

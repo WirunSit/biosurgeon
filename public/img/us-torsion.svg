@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์ดูการไหลเวียนเลือด: อัณฑะบิดขั้ว</title>
+  <defs>
+    <filter id="sp"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="13"/><feColorMatrix type="matrix" values="0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 1.6 -0.55"/></filter>
+  </defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <rect x="16" y="40" width="216" height="240" fill="#454545"/><rect x="16" y="40" width="216" height="240" filter="url(#sp)" opacity="0.9"/>
+  <rect x="248" y="40" width="216" height="240" fill="#454545"/><rect x="248" y="40" width="216" height="240" filter="url(#sp)" opacity="0.9"/>
+  <ellipse cx="124" cy="160" rx="70" ry="52" fill="#8f8f8f"/>
+  <g fill="#e11d48"><rect x="90" y="140" width="6" height="22" rx="3"/><rect x="120" y="128" width="6" height="30" rx="3"/><rect x="150" y="150" width="6" height="24" rx="3"/></g>
+  <g fill="#2563eb"><rect x="104" y="170" width="6" height="20" rx="3"/><rect x="138" y="172" width="6" height="18" rx="3"/></g>
+  <ellipse cx="356" cy="160" rx="72" ry="54" fill="#6f6f6f"/>
+  <path d="M300 90 q14 -10 22 4 q10 16 26 4 q12 -12 22 2" stroke="#bdbdbd" stroke-width="5" fill="none"/>
+  <g fill="#7ee8ff" font-size="15">
+    <text x="30" y="30">อัณฑะขวา: มีสัญญาณเลือดไหล</text>
+    <text x="262" y="30">อัณฑะซ้าย: ไม่มีเลือดไหล</text>
+    <text x="262" y="306">สายสเปิร์มบิดเป็นเกลียว</text>
+    <text x="30" y="306">สีแดง/น้ำเงิน = เลือดไหล</text>
+  </g>
+  <text x="14" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง)</text>
+</svg>

@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพกล้องตรวจตา: ต้อกระจก</title>
+  <defs>
+    <radialGradient id="lens" cx="0.5" cy="0.45" r="0.6"><stop offset="0" stop-color="#f4ecd2"/><stop offset="0.7" stop-color="#d9cfa8"/><stop offset="1" stop-color="#9b8f6a"/></radialGradient>
+    <radialGradient id="glow" cx="0.5" cy="0.5" r="0.5"><stop offset="0" stop-color="#3b2a1e"/><stop offset="1" stop-color="#0d0805"/></radialGradient>
+  </defs>
+  <rect width="480" height="340" fill="#0b0b0b"/>
+  <ellipse cx="160" cy="170" rx="140" ry="110" fill="#f3f0ea"/>
+  <circle cx="160" cy="170" r="80" fill="#5b7a8c"/>
+  <circle cx="160" cy="170" r="44" fill="url(#lens)"/>
+  <path d="M130 150 q30 -12 60 0" stroke="#fff" stroke-width="4" fill="none" opacity="0.6"/>
+  <circle cx="380" cy="120" r="56" fill="url(#glow)"/>
+  <circle cx="380" cy="120" r="20" fill="#e98a4c" opacity="0.25"/>
+  <circle cx="380" cy="120" r="10" fill="#d8b04a" opacity="0.5"/>
+  <path d="M380 120 l40 -26 M380 120 l42 18 M380 120 l-38 28 M380 120 l-36 -24" stroke="#b6382f" stroke-width="3" opacity="0.6"/>
+  <g fill="#7ee8ff" font-size="15">
+    <text x="40" y="30" font-weight="700">เลนส์ตาขุ่นขาวเหลือง (ต้อกระจก)</text>
+    <text x="320" y="200">จอประสาทตา: มองเห็นได้</text>
+    <text x="320" y="220">ไม่ชัด แต่ไม่พบความผิดปกติ</text>
+    <text x="320" y="260">ความดันลูกตา 15 มม.ปรอท</text>
+    <text x="320" y="280">(ปกติ 10–21)</text>
+  </g>
+  <text x="14" y="330" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพถ่ายจริง)</text>
+</svg>

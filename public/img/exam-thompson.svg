@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>ทดสอบบีบน่อง (ผู้ป่วยนอนคว่ำ มองจากด้านหลัง)</title>
+  <rect width="600" height="300" fill="#e8eef4"/>
+  <g fill="#e2b190" stroke="#a8765a" stroke-width="3">
+    <path d="M110 20 C90 70 96 120 118 160 C126 190 124 220 130 240 L190 240 C192 220 196 190 204 160 C224 120 226 70 206 20 Z"/>
+    <path d="M394 20 C374 70 380 120 402 160 C410 190 408 220 414 240 L474 240 C476 220 480 190 488 160 C508 120 510 70 490 20 Z"/>
+    <path d="M128 240 L194 240 L206 286 L146 290 Z"/>
+    <path d="M410 240 L476 240 L470 262 L420 270 Z"/>
+  </g>
+  <path d="M432 186 q10 6 20 0" stroke="#7c4a35" stroke-width="3" fill="none"/>
+  <g font-size="15" fill="#334155" text-anchor="middle">
+    <text x="160" y="16">ขาซ้ายของผู้ป่วย</text>
+    <text x="444" y="16">ขาขวาของผู้ป่วย</text>
+  </g>
+  <text x="300" y="150" font-size="14" fill="#475569" text-anchor="middle">บีบน่องทีละข้าง</text>
+  <text x="300" y="170" font-size="14" fill="#475569" text-anchor="middle">สังเกตปลายเท้า</text>
+</svg>

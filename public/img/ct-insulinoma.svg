@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพ CT ช่องท้อง: ก้อนที่หางตับอ่อน</title>
+  <rect width="480" height="340" fill="#050505"/>
+  <ellipse cx="240" cy="175" rx="200" ry="140" fill="#3a3a3a"/>
+  <ellipse cx="240" cy="175" rx="186" ry="128" fill="#5a5a5a"/>
+  <rect x="226" y="236" width="28" height="40" rx="6" fill="#e5e5e5"/>
+  <path d="M60 120 Q90 70 170 80 Q200 120 160 190 Q100 210 60 170 Z" fill="#8a8a8a"/>
+  <path d="M300 90 Q360 60 400 110 Q390 150 330 150 Q300 130 300 90 Z" fill="#7a7a7a"/>
+  <path d="M396 170 Q430 190 412 240 Q390 250 378 220 Z" fill="#8e8e8e"/>
+  <path d="M170 196 Q240 176 300 190 Q350 196 382 210" stroke="#9c9c9c" stroke-width="20" fill="none" stroke-linecap="round"/>
+  <circle cx="352" cy="200" r="13" fill="#e6e6e6"/>
+  <circle cx="246" cy="220" r="9" fill="#d0d0d0"/>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="400" y1="300" x2="356" y2="214" stroke-width="2"/><text x="300" y="318" stroke="none" font-weight="700">ก้อน 1.5 ซม. ที่หางตับอ่อน</text>
+    <line x1="120" y1="250" x2="200" y2="196" stroke-width="2"/><text x="30" y="270" stroke="none">ตับอ่อน</text>
+    <text x="70" y="64" stroke="none">ตับ</text><text x="320" y="56" stroke="none">กระเพาะอาหาร</text><text x="420" y="160" stroke="none">ม้าม</text>
+  </g>
+  <text x="14" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพ CT จริง)</text>
+</svg>

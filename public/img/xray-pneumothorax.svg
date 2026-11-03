@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 360" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพเอกซเรย์ทรวงอก: ปอดซ้ายแฟบ</title>
+  <rect width="400" height="360" fill="#0b0b0b"/>
+  <g fill="none" stroke="#9a9a9a" stroke-width="5" opacity="0.75">
+    <path d="M200 40 V320" stroke-width="16" stroke="#bdbdbd"/>
+    <path d="M190 70 Q110 60 70 120 M190 105 Q100 95 62 160 M190 140 Q96 135 58 200 M190 175 Q96 175 60 240 M190 210 Q100 215 66 275"/>
+    <path d="M210 70 Q290 60 330 120 M210 105 Q300 95 338 160 M210 140 Q304 135 342 200 M210 175 Q304 175 340 240 M210 210 Q300 215 334 275"/>
+  </g>
+  <path d="M180 60 C110 70 70 150 72 290 L180 300 Z" fill="#3a3a3a" opacity="0.85"/>
+  <path d="M220 60 C290 70 335 150 330 290 L220 300 Z" fill="#050505"/>
+  <path d="M222 120 C262 120 270 180 262 230 C254 262 230 268 222 262 Z" fill="#5a5a5a"/>
+  <path d="M222 120 C262 120 270 180 262 230 C254 262 230 268 222 262" fill="none" stroke="#eee" stroke-width="2"/>
+  <path d="M165 175 C150 210 160 270 205 285 C240 280 245 230 225 190 Z" fill="#8a8a8a" opacity="0.8"/>
+  <g fill="#7ee8ff" stroke="#7ee8ff" font-size="14">
+    <line x1="300" y1="110" x2="275" y2="140" stroke-width="2"/><text x="238" y="100" stroke="none" font-weight="700">ไม่มีลายปอด (มีแต่ลม)</text>
+    <line x1="300" y1="300" x2="262" y2="240" stroke-width="2"/><text x="250" y="318" stroke="none">ขอบปอดซ้ายที่หดตัว</text>
+  </g>
+  <text x="12" y="24" fill="#9ad" font-size="13">R</text><text x="378" y="24" fill="#9ad" font-size="13">L</text>
+  <text x="12" y="350" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพเอกซเรย์จริง) • ด้านขวาของผู้ป่วยอยู่ทางซ้ายของภาพ</text>
+</svg>

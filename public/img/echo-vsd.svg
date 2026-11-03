@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์หัวใจ: ผนังกั้นห้องล่างรั่ว</title>
+  <defs><clipPath id="fan"><path d="M240 20 L440 300 L40 300 Z"/></clipPath></defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <g clip-path="url(#fan)">
+    <rect width="480" height="340" fill="#2b2b2b"/>
+    <path d="M240 60 C150 90 120 200 160 290 L320 290 C360 200 330 90 240 60 Z" fill="#9a9a9a"/>
+    <ellipse cx="200" cy="200" rx="45" ry="70" fill="#111"/>
+    <ellipse cx="282" cy="200" rx="45" ry="70" fill="#111"/>
+    <rect x="236" y="130" width="10" height="150" fill="#cfcfcf"/>
+    <rect x="234" y="185" width="14" height="22" fill="#111"/>
+    <path d="M285 196 L210 196" stroke="#e11d48" stroke-width="10" marker-end="url(#a)"/>
+    <path d="M285 196 L218 196" stroke="#facc15" stroke-width="4"/>
+  </g>
+  <defs><marker id="a" markerWidth="8" markerHeight="8" refX="4" refY="4" orient="auto"><path d="M0 0 L8 4 L0 8 Z" fill="#facc15"/></marker></defs>
+  <g fill="#7ee8ff" font-size="14">
+    <text x="150" y="120">ห้องล่างขวา</text><text x="285" y="120">ห้องล่างซ้าย</text>
+    <text x="300" y="250" font-weight="700">เลือดไหลผ่านรู ซ้าย → ขวา</text>
+  </g>
+  <text x="14" y="330" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง) • ลูกศรสีแสดงทิศการไหลของเลือด</text>
+</svg>

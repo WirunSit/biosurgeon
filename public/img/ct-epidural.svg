@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพ CT สมอง: เลือดคั่งเหนือเยื่อหุ้มสมอง</title>
+  <rect width="480" height="340" fill="#050505"/>
+  <ellipse cx="240" cy="170" rx="150" ry="150" fill="#f2f2f2"/>
+  <ellipse cx="240" cy="170" rx="138" ry="139" fill="#6f6f6f"/>
+  <!-- ก้อนเลือดรูปเลนส์ด้านซ้ายของผู้ป่วย (ขวาของภาพ) -->
+  <path d="M352 82 Q318 170 352 258 Q386 220 378 170 Q386 120 352 82 Z" fill="#dcdcdc"/>
+  <!-- สมองถูกเบียด เส้นกึ่งกลางเลื่อน -->
+  <path d="M232 40 Q216 170 232 300" stroke="#3a3a3a" stroke-width="4" fill="none"/>
+  <path d="M232 40 L240 300" stroke="#9ae6ff" stroke-width="1.5" stroke-dasharray="6 6" fill="none"/>
+  <ellipse cx="200" cy="170" rx="18" ry="36" fill="#2c2c2c"/>
+  <ellipse cx="262" cy="172" rx="10" ry="24" fill="#2c2c2c"/>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="410" y1="60" x2="364" y2="110" stroke-width="2"/><text x="330" y="40" stroke="none" font-weight="700">ก้อนเลือดรูปเลนส์ (นูนสองด้าน)</text>
+    <line x1="120" y1="306" x2="226" y2="250" stroke-width="2"/><text x="18" y="322" stroke="none">เนื้อสมองถูกเบียด เส้นกึ่งกลางเลื่อนไปทางขวา</text>
+    <text x="18" y="30" stroke="none">กะโหลก (ขาว)</text>
+  </g>
+  <text x="300" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา • ซ้ายของผู้ป่วยอยู่ขวาของภาพ</text>
+</svg>

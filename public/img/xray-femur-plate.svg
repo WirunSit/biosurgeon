@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 300" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>เอกซเรย์ระหว่างผ่าตัด: กระดูกต้นขาหลังยึดแผ่นโลหะ</title>
+  <rect width="600" height="300" fill="#070707"/>
+  <rect x="20" y="70" width="560" height="160" rx="70" fill="#262626"/>
+  <rect x="40" y="120" width="520" height="60" rx="8" fill="#d6d6d6"/>
+  <rect x="40" y="140" width="520" height="20" fill="#5a5a5a"/>
+  <path d="M298 120 L302 180" stroke="#f8f8f8" stroke-width="2"/>
+  <rect x="110" y="108" width="380" height="12" rx="4" fill="#ffffff"/>
+  <g fill="#ffffff">
+    <rect x="136" y="108" width="7" height="76"/><rect x="186" y="108" width="7" height="76"/><rect x="236" y="108" width="7" height="76"/>
+    <rect x="357" y="108" width="7" height="76"/><rect x="407" y="108" width="7" height="76"/><rect x="457" y="108" width="7" height="76"/>
+  </g>
+  <text x="30" y="40" fill="#7ee8ff" font-size="15">ถ่ายเอกซเรย์ระหว่างผ่าตัด — คลิกตำแหน่งรอยหักเพื่อตรวจแนวกระดูก</text>
+  <text x="14" y="290" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา • ซ้าย = ด้านสะโพก, ขวา = ด้านเข่า</text>
+</svg>

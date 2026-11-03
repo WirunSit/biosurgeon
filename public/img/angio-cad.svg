@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 320" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพฉีดสีหลอดเลือดหัวใจ: ตีบ 3 เส้น</title>
+  <rect width="420" height="320" fill="#1a1a1a"/>
+  <ellipse cx="210" cy="170" rx="130" ry="110" fill="#2a2a2a"/>
+  <g fill="none" stroke="#f1f1f1" stroke-linecap="round">
+    <path d="M200 40 Q205 70 190 90" stroke-width="10"/>
+    <path d="M190 90 Q230 130 240 175" stroke-width="5"/><path d="M246 192 Q255 240 250 290" stroke-width="4"/>
+    <path d="M190 90 Q140 120 128 160" stroke-width="5"/><path d="M122 178 Q110 220 120 260" stroke-width="4"/>
+    <path d="M190 90 Q270 100 300 140" stroke-width="4"/><path d="M312 152 Q340 190 330 230" stroke-width="3.5"/>
+  </g>
+  <g fill="#f87171"><circle cx="243" cy="184" r="6"/><circle cx="125" cy="169" r="6"/><circle cx="306" cy="146" r="6"/></g>
+  <g fill="#7ee8ff" font-size="13"><text x="255" y="185">ตีบ 90%</text><text x="40" y="170">ตีบ 70%</text><text x="318" y="140">ตีบ 80%</text></g>
+  <text x="12" y="20" fill="#9ad" font-size="13">สีขาดช่วง = จุดตีบ</text>
+  <text x="12" y="312" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพฉีดสีจริง)</text>
+</svg>

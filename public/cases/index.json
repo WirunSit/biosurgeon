@@ -1,0 +1,21 @@
+[
+  {"id": "tutorial-00", "stage": 0, "system": "basic", "systemName": "ฝึกพื้นฐานศัลยแพทย์", "title": "วันแรกในโรงพยาบาล", "available": true},
+  {"id": "digestive-01", "stage": 1, "system": "digestive", "systemName": "ระบบย่อยอาหาร", "title": "ปวดท้องที่ย้ายตำแหน่ง", "available": true},
+  {"id": "digestive-02", "stage": 1, "system": "digestive", "systemName": "ระบบย่อยอาหาร", "title": "กินหมูกระทะแล้วปวด", "available": true},
+  {"id": "respiratory-01", "stage": 2, "system": "respiratory", "systemName": "ระบบหายใจ", "title": "หายใจไม่อิ่มกลางสนาม", "available": true},
+  {"id": "respiratory-02", "stage": 2, "system": "respiratory", "systemName": "ระบบหายใจ", "title": "ไอเรื้อรัง 40 ปีของการสูบบุหรี่", "available": true},
+  {"id": "circulatory-01", "stage": 3, "system": "circulatory", "systemName": "ระบบหมุนเวียนเลือด", "title": "หนูน้อยที่เหนื่อยตอนดูดนม", "available": true},
+  {"id": "circulatory-02", "stage": 3, "system": "circulatory", "systemName": "ระบบหมุนเวียนเลือด", "title": "แน่นหน้าอกตอนขึ้นบันได", "available": true},
+  {"id": "immune-01", "stage": 4, "system": "immune", "systemName": "ระบบน้ำเหลืองและภูมิคุ้มกัน", "title": "แผลถลอกที่ไม่ได้ล้าง", "available": true},
+  {"id": "immune-02", "stage": 4, "system": "immune", "systemName": "ระบบน้ำเหลืองและภูมิคุ้มกัน", "title": "รถล้มแล้วปวดไหล่", "available": true},
+  {"id": "excretory-01", "stage": 5, "system": "excretory", "systemName": "ระบบขับถ่าย", "title": "ปวดเอวร้าวลงขาหนีบ", "available": true},
+  {"id": "excretory-02", "stage": 5, "system": "excretory", "systemName": "ระบบขับถ่าย", "title": "ของขวัญจากพี่ชาย", "available": true},
+  {"id": "nervous-01", "stage": 6, "system": "nervous", "systemName": "ระบบประสาทและอวัยวะรับความรู้สึก", "title": "ตื่นมาดูปกติ แล้วค่อย ๆ ซึม", "available": true},
+  {"id": "nervous-02", "stage": 6, "system": "nervous", "systemName": "ระบบประสาทและอวัยวะรับความรู้สึก", "title": "โลกที่มีหมอกตลอดเวลา", "available": true},
+  {"id": "musculoskeletal-01", "stage": 7, "system": "musculoskeletal", "systemName": "ระบบโครงกระดูกและกล้ามเนื้อ", "title": "ขาที่สั้นลง", "available": true},
+  {"id": "musculoskeletal-02", "stage": 7, "system": "musculoskeletal", "systemName": "ระบบโครงกระดูกและกล้ามเนื้อ", "title": "เสียงป๊อกที่ส้นเท้า", "available": true},
+  {"id": "endocrine-01", "stage": 8, "system": "endocrine", "systemName": "ระบบต่อมไร้ท่อ", "title": "กินเยอะแต่ผอมลง", "available": true},
+  {"id": "endocrine-02", "stage": 8, "system": "endocrine", "systemName": "ระบบต่อมไร้ท่อ", "title": "หน้ามืดทุกเช้า", "available": true},
+  {"id": "reproductive-01", "stage": 9, "system": "reproductive", "systemName": "ระบบสืบพันธุ์", "title": "ประจำเดือนขาดพร้อมปวดท้อง", "available": true},
+  {"id": "reproductive-02", "stage": 9, "system": "reproductive", "systemName": "ระบบสืบพันธุ์", "title": "ปวดตอนตีสาม", "available": true}
+]
