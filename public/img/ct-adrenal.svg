@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพ CT ช่องท้อง: ก้อนต่อมหมวกไตขวา</title>
+  <rect width="480" height="340" fill="#050505"/>
+  <ellipse cx="240" cy="175" rx="200" ry="140" fill="#3a3a3a"/><ellipse cx="240" cy="175" rx="186" ry="128" fill="#555"/>
+  <rect x="226" y="236" width="28" height="40" rx="6" fill="#e5e5e5"/>
+  <path d="M60 110 Q100 60 190 80 Q210 130 170 180 Q100 200 60 160 Z" fill="#8a8a8a"/>
+  <circle cx="246" cy="214" r="12" fill="#bdbdbd"/><circle cx="212" cy="206" r="13" fill="#9a9a9a"/>
+  <ellipse cx="150" cy="232" rx="26" ry="34" fill="#9a9a9a"/><ellipse cx="334" cy="228" rx="26" ry="34" fill="#9a9a9a"/>
+  <circle cx="170" cy="186" r="26" fill="#cfcfcf"/><circle cx="170" cy="186" r="12" fill="#8a8a8a"/>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="80" y1="290" x2="160" y2="206" stroke-width="2"/><text x="14" y="310" stroke="none" font-weight="700">ก้อนต่อมหมวกไตขวา 4 ซม. (ขอบชัด ตรงกลางเนื้อตาย)</text>
+    <text x="70" y="64" stroke="none">ตับ</text><text x="200" y="236" stroke="none" font-size="12">หลอดเลือดดำใหญ่</text><text x="360" y="276" stroke="none">ไตซ้าย</text>
+  </g>
+  <text x="14" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา • ขวาของผู้ป่วยอยู่ซ้ายของภาพ</text>
+</svg>

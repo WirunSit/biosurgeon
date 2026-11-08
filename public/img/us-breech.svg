@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์ครรภ์: ทารกท่าก้น</title>
+  <defs><filter id="sp"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="21"/><feColorMatrix type="matrix" values="0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 1.6 -0.55"/></filter><clipPath id="fan"><path d="M200 20 L280 20 L460 300 L20 300 Z"/></clipPath></defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <g clip-path="url(#fan)"><rect width="480" height="340" fill="#3a3a3a"/><rect width="480" height="340" filter="url(#sp)" opacity="0.9"/>
+    <ellipse cx="240" cy="170" rx="190" ry="120" fill="#141414"/>
+    <path d="M90 60 Q240 40 390 60 L390 80 Q240 64 90 80 Z" fill="#8a8a8a"/>
+    <circle cx="300" cy="140" r="46" fill="#7a7a7a" stroke="#cfcfcf" stroke-width="4"/>
+    <ellipse cx="200" cy="200" rx="80" ry="44" fill="#6a6a6a"/>
+    <ellipse cx="140" cy="240" rx="34" ry="26" fill="#757575"/>
+  </g>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="400" y1="110" x2="330" y2="130" stroke-width="2"/><text x="360" y="102" stroke="none" font-weight="700">ศีรษะอยู่ด้านบน</text>
+    <line x1="60" y1="300" x2="130" y2="254" stroke-width="2"/><text x="14" y="318" stroke="none" font-weight="700">ก้นอยู่ต่ำ ติดปากมดลูก (ท่าก้น)</text>
+    <text x="140" y="50" stroke="none">รกเกาะด้านบนของมดลูก</text>
+  </g>
+  <text x="300" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา</text>
+</svg>
