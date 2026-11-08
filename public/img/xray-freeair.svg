@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพเอกซเรย์ทรวงอกท่ายืน: ลมใต้กะบังลม</title>
+  <rect width="480" height="340" fill="#060606"/>
+  <path d="M70 330 C60 200 80 70 150 40 L330 40 C400 70 420 200 410 330 Z" fill="#3a3a3a"/>
+  <ellipse cx="170" cy="150" rx="70" ry="110" fill="#151515"/><ellipse cx="312" cy="150" rx="66" ry="106" fill="#151515"/>
+  <path d="M215 120 Q240 110 262 130 L290 250 Q240 270 205 250 Z" fill="#8a8a8a"/>
+  <path d="M100 262 Q170 222 236 262" stroke="#9a9a9a" stroke-width="10" fill="none"/>
+  <path d="M244 266 Q312 226 382 266" stroke="#9a9a9a" stroke-width="10" fill="none"/>
+  <path d="M110 258 Q170 226 228 258 L226 270 Q170 248 112 270 Z" fill="#000"/>
+  <path d="M252 262 Q312 230 372 262 L370 272 Q312 252 254 272 Z" fill="#000"/>
+  <path d="M100 280 Q170 260 240 290 L240 330 L90 330 Z" fill="#6a6a6a"/>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="60" y1="300" x2="150" y2="262" stroke-width="2"/><text x="14" y="318" stroke="none" font-weight="700">ลมดำใต้กะบังลมทั้งสองข้าง</text>
+    <text x="300" y="318" stroke="none">ตับ (เทาขาว) ใต้กะบังลมขวา</text>
+  </g>
+  <text x="14" y="24" fill="#9ad" font-size="13">ท่ายืน • ขวาของผู้ป่วยอยู่ซ้ายของภาพ</text>
+  <text x="300" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา</text>
+</svg>

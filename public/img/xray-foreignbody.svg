@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพเอกซเรย์ทรวงอกเด็ก: ลมค้างในปอดขวา</title>
+  <rect width="480" height="340" fill="#060606"/>
+  <path d="M80 320 C70 200 90 80 160 50 L320 50 C390 80 410 200 400 320 Z" fill="#3a3a3a"/>
+  <ellipse cx="168" cy="170" rx="82" ry="120" fill="#0c0c0c"/>
+  <ellipse cx="318" cy="170" rx="58" ry="96" fill="#222"/>
+  <g stroke="#2e2e2e" stroke-width="2" opacity="0.8"><path d="M300 120 l40 -20 M300 160 l50 0 M300 200 l44 20"/></g>
+  <path d="M232 110 Q262 104 286 124 L314 248 Q262 268 236 252 Z" fill="#8a8a8a"/>
+  <path d="M240 40 L240 112" stroke="#555" stroke-width="12"/>
+  <path d="M90 288 Q168 270 240 290" stroke="#9a9a9a" stroke-width="9" fill="none"/>
+  <path d="M244 270 Q318 240 392 270" stroke="#9a9a9a" stroke-width="9" fill="none"/>
+  <g stroke="#7ee8ff" fill="#7ee8ff" font-size="15">
+    <line x1="80" y1="70" x2="140" y2="120" stroke-width="2"/><text x="14" y="62" stroke="none" font-weight="700">ปอดขวาดำกว่าและพองกว่า (ลมค้าง)</text>
+    <line x1="380" y1="80" x2="292" y2="150" stroke-width="2"/><text x="330" y="72" stroke="none">หัวใจถูกดันไปทางซ้าย</text>
+    <text x="14" y="316" stroke="none">ถ่ายตอนหายใจออก: ปอดขวาไม่ยุบตาม</text>
+  </g>
+  <text x="300" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา • ถั่วโปร่งรังสี มองไม่เห็นในภาพ</text>
+</svg>

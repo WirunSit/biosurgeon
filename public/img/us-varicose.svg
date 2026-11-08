@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 340" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพอัลตราซาวนด์หลอดเลือดดำขา: เลือดไหลย้อน</title>
+  <defs><filter id="sp"><feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed="17"/><feColorMatrix type="matrix" values="0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 0 0.6 0 0 0 1.6 -0.55"/></filter></defs>
+  <rect width="480" height="340" fill="#050505"/>
+  <rect x="20" y="40" width="300" height="250" fill="#444"/><rect x="20" y="40" width="300" height="250" filter="url(#sp)" opacity="0.9"/>
+  <path d="M20 150 Q170 140 320 160" stroke="#111" stroke-width="34" fill="none"/>
+  <path d="M60 150 Q170 142 280 156" stroke="#2563eb" stroke-width="16" fill="none" opacity="0.8"/>
+  <path d="M120 152 l-14 -12 M120 152 l-14 12" stroke="#ddd" stroke-width="3" fill="none"/>
+  <rect x="340" y="60" width="120" height="200" fill="#0b0b0b" stroke="#333"/>
+  <path d="M350 160 H450" stroke="#555"/>
+  <path d="M350 160 l20 -40 l14 40 Z" fill="#2563eb"/>
+  <path d="M390 160 l10 70 l40 6 l0 -76 Z" fill="#dc2626"/>
+  <g fill="#7ee8ff" font-size="14">
+    <text x="30" y="30">หลอดเลือดดำซาฟีนัสใหญ่ ขยายตัว</text>
+    <text x="30" y="312">ลิ้นในหลอดเลือดปิดไม่สนิท</text>
+    <text x="344" y="52">กราฟการไหลเมื่อบีบน่อง</text>
+    <text x="344" y="252">สีแดงใต้เส้น = ไหลย้อน</text>
+    <text x="344" y="272">นาน 2.5 วินาที (ผิดปกติ)</text>
+  </g>
+  <text x="14" y="334" fill="#777" font-size="11">แผนภาพเพื่อการศึกษา (ไม่ใช่ภาพอัลตราซาวนด์จริง) • หลอดเลือดดำลึกปกติ ไม่มีลิ่มเลือด</text>
+</svg>
