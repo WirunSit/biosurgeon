@@ -320,6 +320,7 @@ export async function runSurgery(opts: {
     if (paused) return;
     sfx.unlock();
     updateHit();
+    if (tools.held) scene.touch?.(hit.targetId);
     engine.pointerDown(hit, ray, tools.held);
   };
   input.onMove = () => {
@@ -377,6 +378,8 @@ export async function runSurgery(opts: {
     if (!paused) {
       elapsed += dt;
       vitals.update(dt);
+      const vd = vitals.display();
+      scene.setPhysiology?.({ hr: Number(vd.HR) || 0, rr: Number(vd.RR) || 0, live: caseDef.mode !== 'anatomy' && caseDef.mode !== 'tutorial' });
       engine.update(dt, hit, tools.held, input.down);
       const limit = caseDef.surgery.timeLimitSec;
       hud.setTimer(`${fmtTime(elapsed)} / ${fmtTime(limit)}`, elapsed > limit);

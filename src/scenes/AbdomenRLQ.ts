@@ -76,6 +76,9 @@ interface Anim {
 }
 
 export class AbdomenRLQScene implements SurgeryScene {
+  private live = false;
+  private rr = 14;
+  private breathPhase = 0;
   readonly root = new THREE.Group();
   private layers: Layer[] = [];
   private layerMap = new Map<string, Layer>();
@@ -639,7 +642,7 @@ export class AbdomenRLQScene implements SurgeryScene {
 
   private anchor(target: string): THREE.Vector3 | null {
     const a = this.anat.anchors[target];
-    if (a) return a;
+    if (a) return a.clone().add(this.anat.group.position);
     if (target === 'zone_rlq' || target === 'incision') return toWorld(new THREE.Vector2(0, 0), 0, 0.004);
     const L = this.layerMap.get(target);
     if (L) return toWorld(new THREE.Vector2(0, 0), L.depth, 0.004);
@@ -678,7 +681,16 @@ export class AbdomenRLQScene implements SurgeryScene {
 
   // ---------- อัปเดตทุกเฟรม ----------
 
+  /** ผู้ป่วยหายใจ (เครื่องช่วยหายใจ): อวัยวะในท้องน้อยขยับตามกะบังลมเล็กน้อย */
+  setPhysiology(p: { hr: number; rr: number; live: boolean }): void {
+    this.live = p.live;
+    this.rr = Math.min(50, Math.max(0, p.rr));
+  }
+
   update(dt: number, t: number, camera: THREE.Camera): void {
+    this.breathPhase = (this.breathPhase + (dt * this.rr) / 60) % 1;
+    const breath = this.live ? (1 - Math.cos(this.breathPhase * Math.PI * 2)) / 2 : 0;
+    this.anat.group.position.set(0, 0.0003 * breath, 0.0008 * breath);
     for (const L of this.layers) {
       const goal = L.openTarget + (L.id === 'skin' ? this.stretch : 0);
       L.uniforms.uOpen.value += (goal - L.uniforms.uOpen.value) * Math.min(1, dt * 4.5);

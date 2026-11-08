@@ -26,6 +26,11 @@ interface Obj {
   baseOpacity: number;
   volume: number;
   pulse: boolean;
+  /** กลุ่มชั้นในที่รับการเคลื่อนไหวแบบมีชีวิต (หัวใจเต้น ปอดพอง ฯลฯ) แยกจากการเลื่อน/หมุนของขั้นตอน */
+  inner: THREE.Group;
+  motion: NonNullable<FieldObjectDef['motion']>;
+  /** เฟสสุ่มต่อชิ้น ไม่ให้ลำไส้ทุกส่วนบีบพร้อมกัน */
+  seed: number;
 }
 
 interface LayerMeta {
@@ -94,6 +99,15 @@ export class FieldScene implements SurgeryScene {
   private dressing: THREE.Group;
   private smoke: { m: THREE.Mesh; life: number }[] = [];
   private smokeAt: THREE.Vector3 | null = null;
+  // การเคลื่อนไหวแบบมีชีวิต
+  private live = false;
+  private hr = 72;
+  private rr = 14;
+  private beatPhase = 0;
+  private breathPhase = 0;
+  private jiggles = new Map<string, number>();
+  private pressing: string | null = null;
+  private tug: { id: string; vec: THREE.Vector2; lift: number } | null = null;
   private smokeT = 0;
   private anims: Anim[] = [];
   private organLabels = new Set<string>();
@@ -258,6 +272,8 @@ export class FieldScene implements SurgeryScene {
   private buildObject(d: FieldObjectDef): void {
     const group = new THREE.Group();
     group.name = d.id;
+    const inner = new THREE.Group();
+    group.add(inner);
     const pivot = d.at ? this.P(d.at) : d.points ? this.P(d.points[0]) : this.P([0, 0, 0.04]);
     group.position.copy(pivot);
     const opacity = d.opacity ?? 1;
@@ -283,7 +299,7 @@ export class FieldScene implements SurgeryScene {
       m.castShadow = !d.inside && opacity > 0.5;
       m.receiveShadow = true;
       m.userData.targetId = d.id;
-      group.add(m);
+      inner.add(m);
       meshes.push(m);
       return m;
     };
@@ -361,7 +377,7 @@ export class FieldScene implements SurgeryScene {
         if (d.hit) {
           const proxy = new THREE.Mesh(varTube(curve, () => d.hit!, { tubular: 24, radial: 8 }), proxyMat);
           proxy.userData.targetId = d.id;
-          group.add(proxy);
+          inner.add(proxy);
           meshes.push(proxy);
         }
         break;
@@ -371,7 +387,7 @@ export class FieldScene implements SurgeryScene {
     if (d.hit && d.shape !== 'tube') {
       const proxy = new THREE.Mesh(new THREE.SphereGeometry(d.hit, 10, 8), proxyMat);
       proxy.userData.targetId = d.id;
-      group.add(proxy);
+      inner.add(proxy);
       meshes.push(proxy);
     }
     if (d.hidden) group.visible = false;
@@ -389,6 +405,9 @@ export class FieldScene implements SurgeryScene {
       baseOpacity: opacity,
       volume: d.hidden ? 0 : 1,
       pulse: !!d.pulse,
+      inner,
+      motion: this.motionOf(d),
+      seed: Math.random() * Math.PI * 2,
     };
     this.objs.set(d.id, o);
     if (d.model) {
@@ -415,7 +434,7 @@ export class FieldScene implements SurgeryScene {
           }
         });
         for (const m of meshes) if (m.material !== proxyMat) m.material = proxyMat;
-        group.add(model);
+        inner.add(model);
       });
     }
   }
@@ -423,10 +442,10 @@ export class FieldScene implements SurgeryScene {
   private anchorOf(id: string): THREE.Vector3 | null {
     const o = this.objs.get(id);
     if (o) {
-      o.group.updateWorldMatrix(true, false);
+      o.inner.updateWorldMatrix(true, false);
       if (this.camera && this.camera.position.y < this.Y0) {
         // มุมกล้องส่อง (อยู่ใต้ผิว): ใช้จุดกึ่งกลางวัตถุ ขยับเข้าหากล้องเล็กน้อย
-        const c = o.centerLocal.clone().applyMatrix4(o.group.matrixWorld);
+        const c = o.centerLocal.clone().applyMatrix4(o.inner.matrixWorld);
         return c.lerp(this.camera.position, o.def.shape === 'tube' ? 0.04 : 0.15);
       }
       if (o.def.shape === 'cylinder') {
@@ -435,7 +454,9 @@ export class FieldScene implements SurgeryScene {
         const c = box.getCenter(new THREE.Vector3());
         return c.setY(box.max.y + 0.002 * this.unit);
       }
-      return o.anchorLocal.clone().applyMatrix4(o.group.matrixWorld);
+      // ใช้กลุ่มชั้นใน: จุดยึด (และวงแหวนไฮไลต์) ขยับตามการเต้น/การหายใจของอวัยวะ
+      o.inner.updateWorldMatrix(true, false);
+      return o.anchorLocal.clone().applyMatrix4(o.inner.matrixWorld);
     }
     if (id === 'zone' || id === 'incision') return this.toWorld(this.openingCenter(), 0, 0.004 * this.unit);
     const L = this.layerMap.get(id);
@@ -690,13 +711,22 @@ export class FieldScene implements SurgeryScene {
       return;
     }
     const o = this.objs.get(target);
-    if (!o || !o.def.draggable) return;
+    if (o && !o.def.draggable) {
+      // เนื้อเยื่อที่ไม่ได้หลุดออกมา: ยืดตามปากคีบเล็กน้อยแล้วดีดกลับเมื่อปล่อย
+      this.tug = { id: target, vec: delta.clone().clampLength(0, 0.008 * this.unit).multiplyScalar(0.45), lift: progress * 0.003 * this.unit };
+      return;
+    }
+    if (!o) return;
     const d = delta.clone().clampLength(0, 0.05 * this.unit);
     o.group.position.set(o.home.x + d.x, o.home.y + progress * 0.01 * this.unit, o.home.z + d.y);
   }
 
   dragEnd(target: string, success: boolean): void {
     this.stretch = 0;
+    if (this.tug?.id === target) {
+      this.tug = null;
+      this.touch(target);
+    }
     const o = this.objs.get(target);
     if (!o || !o.def.draggable) return;
     if (!success) this.tweenPos(o.group, o.home.clone(), 0.3);
@@ -795,6 +825,7 @@ export class FieldScene implements SurgeryScene {
 
   holdFx(target: string, active: boolean): void {
     this.smokeAt = active ? this.anchorOf(target) : null;
+    this.pressing = active ? target : null;
   }
 
   effect(name: string): void {
@@ -921,6 +952,103 @@ export class FieldScene implements SurgeryScene {
     }
   }
 
+  private motionOf(d: FieldObjectDef): Obj['motion'] {
+    if (d.motion) return d.motion;
+    if (d.pulse) return d.shape === 'tube' ? 'artery' : 'heart';
+    const key = `${d.id} ${d.model ?? ''}`.toLowerCase();
+    if (/lung|lobe/.test(key)) return 'lung';
+    if (/small_int|bowel|colon|duoden|jejun|ileum|intestine|omentum|stomach/.test(key)) return 'bowel';
+    const depth = d.at?.[2] ?? d.points?.[0]?.[2] ?? 0;
+    if (d.inside || depth <= 0.004 * this.unit || d.shape === 'ring' || d.shape === 'sheet') return 'none';
+    return 'drift';
+  }
+
+  setPhysiology(p: { hr: number; rr: number; live: boolean }): void {
+    this.live = p.live;
+    this.hr = THREE.MathUtils.clamp(p.hr, 0, 200);
+    this.rr = THREE.MathUtils.clamp(p.rr, 0, 50);
+  }
+
+  touch(targetId: string | null): void {
+    if (!targetId) return;
+    const o = this.objs.get(targetId);
+    if (!o) return;
+    // ส่วนย่อยของอวัยวะ (parent) ให้ทั้งอวัยวะกระเพื่อม
+    this.jiggles.set(o.def.parent && this.objs.has(o.def.parent) ? o.def.parent : targetId, 0);
+  }
+
+  /** หัวใจเต้นตามชีพจร ปอดพองตามการหายใจ ลำไส้บีบตัว อวัยวะขยับตามกะบังลม และเนื้อเยื่อตอบสนองต่อเครื่องมือ */
+  private animateLife(dt: number, t: number): void {
+    this.beatPhase = (this.beatPhase + (dt * this.hr) / 60) % 1;
+    this.breathPhase = (this.breathPhase + (dt * this.rr) / 60) % 1;
+    const u = this.unit;
+    // รูปคลื่น: หายใจเข้า (0→1) แล้วออก, หัวใจห้องบนบีบก่อน ตามด้วยห้องล่าง
+    const breath = (1 - Math.cos(this.breathPhase * Math.PI * 2)) / 2;
+    const c = this.beatPhase;
+    const systole = c > 0.1 && c < 0.42 ? Math.sin((Math.PI * (c - 0.1)) / 0.32) ** 1.5 : 0;
+    const atrial = c < 0.1 ? Math.sin((Math.PI * c) / 0.1) * 0.35 : 0;
+    const throb = Math.max(0, Math.sin(Math.PI * 2 * (c - 0.12))) ** 3;
+    const S = new THREE.Vector3();
+    const O = new THREE.Vector3();
+    const q = new THREE.Quaternion();
+    for (const [id, t0] of this.jiggles) if (t0 > 0.9) this.jiggles.delete(id);
+    for (const o of this.objs.values()) {
+      S.set(1, 1, 1);
+      O.set(0, 0, 0);
+      if (this.live) {
+        const m = o.motion;
+        if (m === 'heart' && o.pulse) {
+          S.x *= 1 - 0.07 * systole - 0.02 * atrial;
+          S.z *= 1 - 0.07 * systole - 0.02 * atrial;
+          S.y *= 1 - 0.03 * systole;
+          O.y += 0.0008 * u * systole;
+        } else if (o.pulse) S.multiplyScalar(1 + 0.045 * throb);
+        if (m === 'lung') {
+          S.x *= 1 + 0.05 * breath;
+          S.y *= 1 + 0.07 * breath;
+          S.z *= 1 + 0.035 * breath;
+          O.y += 0.0015 * u * breath;
+        }
+        if (m === 'bowel') {
+          const w = Math.sin(t * 1.25 + o.seed);
+          S.x *= 1 + 0.025 * w;
+          S.z *= 1 - 0.02 * w;
+          O.x += 0.0005 * u * Math.sin(t * 0.6 + o.seed);
+        }
+        if (m !== 'none') {
+          // กะบังลมเลื่อนลงเมื่อหายใจเข้า ดันอวัยวะไปทางเท้าเล็กน้อย
+          O.z += 0.0011 * u * breath;
+          O.y += 0.0004 * u * breath;
+        }
+      }
+      // เนื้อเยื่อกระเพื่อมเมื่อเครื่องมือแตะ (สปริงหน่วง) — มีทั้งในผู้ป่วยและหุ่นจำลอง
+      const jt = this.jiggles.get(o.def.id);
+      if (jt !== undefined) {
+        this.jiggles.set(o.def.id, jt + dt);
+        const a = Math.exp(-jt * 6) * Math.sin(jt * 30);
+        S.y *= 1 - 0.05 * a;
+        S.x *= 1 + 0.025 * a;
+        S.z *= 1 + 0.025 * a;
+      }
+      if (this.pressing === o.def.id) {
+        S.y *= 0.95;
+        O.x += 0.00025 * u * Math.sin(t * 55);
+      }
+      if (this.tug?.id === o.def.id) {
+        O.x += this.tug.vec.x;
+        O.z += this.tug.vec.y;
+        O.y += this.tug.lift;
+        S.y *= 1 + this.tug.lift / (0.01 * u);
+      }
+      // ขยาย/หดรอบจุดกลางวัตถุ และแปลงการเลื่อนจากแกนโลกเป็นแกนของวัตถุ
+      const cl = o.centerLocal;
+      q.copy(o.group.quaternion).invert();
+      O.applyQuaternion(q).divideScalar(o.group.scale.x || 1);
+      o.inner.scale.copy(S);
+      o.inner.position.set(cl.x - cl.x * S.x + O.x, cl.y - cl.y * S.y + O.y, cl.z - cl.z * S.z + O.z);
+    }
+  }
+
   setHighlight(target: string | null): void {
     this.highlight = target;
     this.ring.visible = !!target;
@@ -1004,12 +1132,9 @@ export class FieldScene implements SurgeryScene {
     }
 
     for (const o of this.objs.values()) {
-      if (o.pulse) {
-        const k = 1 + 0.035 * Math.max(0, Math.sin(t * 7.5)) ** 3;
-        o.meshes[0]?.scale && o.group.scale.set(k, k, k);
-      }
       if (o.def.blood && o.group.visible && this.bleedRate > 0) this.setVolume(o, Math.max(o.volume, 0.08) + this.bleedRate * 0.011 * dt);
     }
+    this.animateLife(dt, t);
 
     if (this.highlight) {
       const p = this.anchorOf(this.highlight);

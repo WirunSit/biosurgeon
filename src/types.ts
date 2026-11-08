@@ -272,6 +272,12 @@ export interface FieldObjectDef {
   draggable?: boolean;
   /** เต้นเป็นจังหวะ (หัวใจ) */
   pulse?: boolean;
+  /**
+   * การเคลื่อนไหวแบบมีชีวิตระหว่างผ่าตัด (ค่าเริ่มต้นเดาจากชนิดวัตถุ):
+   * heart = หัวใจบีบตัวตามชีพจร, artery = หลอดเลือดแดงเต้นตามชีพจร, lung = ปอดพองยุบตามการหายใจ,
+   * bowel = ลำไส้บีบตัวช้า ๆ, drift = ขยับตามการหายใจ (อวัยวะในช่องท้อง/อก), none = นิ่ง
+   */
+  motion?: 'heart' | 'artery' | 'lung' | 'bowel' | 'drift' | 'none';
   /** แกนหมุนสำหรับ action rotate (ค่าเริ่มต้น y) */
   axis?: 'x' | 'y' | 'z';
   parent?: string;

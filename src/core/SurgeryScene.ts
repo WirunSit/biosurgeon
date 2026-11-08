@@ -57,6 +57,10 @@ export interface SurgeryScene {
   labels(): LabelAnchor[];
   /** มุมมองกล้องของห้องผ่าตัดนี้ */
   fieldPose(): { pos: THREE.Vector3; target: THREE.Vector3 };
+  /** ชีพจรและการหายใจของผู้ป่วยตอนนี้ (live = ผู้ป่วยจริง ไม่ใช่หุ่นจำลอง/แผ่นฝึก) ใช้ขยับอวัยวะ */
+  setPhysiology?(p: { hr: number; rr: number; live: boolean }): void;
+  /** เครื่องมือแตะวัตถุ (เนื้อเยื่อสั่นกระเพื่อมเล็กน้อย) */
+  touch?(targetId: string | null): void;
   update(dt: number, t: number, camera: THREE.Camera): void;
   dispose(): void;
 }
