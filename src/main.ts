@@ -107,7 +107,7 @@ async function main(): Promise<void> {
     sfx.enabled = choice.sound;
 
     const c = await fetchCase(choice.caseId);
-    const tutorial = c.mode === 'tutorial';
+    const tutorial = c.mode === 'tutorial' || c.mode === 'anatomy';
     const s = new Session(c, choice.difficulty, choice.reducedGore);
     vitals = new VitalsSim(c.vitals);
     const makeScene = SCENES[c.surgery.scene];
@@ -118,7 +118,7 @@ async function main(): Promise<void> {
     void sm.flyTo(BEDSIDE, 1.6);
 
     if (tutorial) {
-      // ด่าน 0: ไม่มีการสืบสวน/วินิจฉัย เริ่มฝึกในห้องผ่าตัดเลย
+      // ด่าน 0 และห้องปฏิบัติการกายวิภาค: ไม่มีการสืบสวน/วินิจฉัย เข้าห้องผ่าตัดเลย
       s.dxCorrect = true;
       s.evidenceScore = 1;
       s.budgetScore = 1;
@@ -127,7 +127,7 @@ async function main(): Promise<void> {
         title: c.title,
         speaker: 'อาจารย์หมอ',
         body: h('div', {}, h('p', {}, c.background ?? ''), h('p', { class: 'muted' }, c.chiefComplaint)),
-        buttons: [{ label: 'เข้าห้องฝึก', value: 0, primary: true }],
+        buttons: [{ label: c.mode === 'anatomy' ? 'เข้าห้องปฏิบัติการ' : 'เข้าห้องฝึก', value: 0, primary: true }],
       });
     } else {
       await showInvestigate(c, s, vitals);

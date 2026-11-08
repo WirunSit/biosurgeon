@@ -286,13 +286,12 @@ async function run(caseId: string, stopAt?: string): Promise<string> {
     nameIn.value = 'ทดสอบอัตโนมัติ';
     nameIn.dispatchEvent(new Event('change'));
   }
-  const cards = $$<HTMLButtonElement>('.case-card');
-  const idx = (await (await fetch('cases/index.json')).json()).findIndex((e: any) => e.id === caseId);
-  cards[idx]?.click();
+  const entry = (await (await fetch('cases/index.json')).json()).find((e: any) => e.id === caseId);
+  $$<HTMLButtonElement>('.case-card').find((b) => $('b', b)?.textContent === `“${entry?.title}”`)?.click();
   await w(300);
   await drainModals(ans, games, log);
 
-  if (c.mode !== 'tutorial') {
+  if (c.mode !== 'tutorial' && c.mode !== 'anatomy') {
     // สืบสวน: เลือกเฉพาะข้อที่เป็นเบาะแส
     const qb = $$<HTMLButtonElement>('.investigate .chat ~ .q-list .q-btn');
     c.history.forEach((hh, i) => hh.clue === true && qb[i]?.click());

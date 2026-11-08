@@ -1,7 +1,7 @@
 import type { CaseDef, Difficulty } from '../types';
 
 export interface MistakeLog {
-  phase: 'วินิจฉัย' | 'เตรียมผ่าตัด' | 'ผ่าตัด' | 'หลังผ่าตัด';
+  phase: 'วินิจฉัย' | 'เตรียมผ่าตัด' | 'ผ่าตัด' | 'หลังผ่าตัด' | 'ทบทวน';
   title: string;
   explain: string;
 }

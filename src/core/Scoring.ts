@@ -52,6 +52,15 @@ export function computeScore(s: Session): ScoreResult {
     { name: 'ความรู้ชีววิทยา', score: round1(bio), max: 20, note: `ตอบถูก ${s.bioCorrect}/${s.bioTotal} ข้อ` },
     { name: 'เวลา', score: round1(time), max: 5, note: `ผ่าตัด ${fmtTime(s.surgeryTimeSec)} (กำหนด ${fmtTime(timeLimit)})` },
   ];
+  if (s.caseDef.mode === 'anatomy') {
+    // ห้องปฏิบัติการกายวิภาค: หุ่นจำลองไม่มีสัญญาณชีพ — คิดเฉพาะการผ่า ความรู้ และเวลา แล้วปรับให้เต็ม 100
+    const keep = lines.filter((l) => l.name !== 'การวินิจฉัย' && l.name !== 'ความปลอดภัยของผู้ป่วย');
+    keep[0] = { ...keep[0], name: 'ความถูกต้องของการผ่าและระบุอวัยวะ', note: 'ระบุอวัยวะถูก ใช้เครื่องมือถูก ความแม่นยำการกรีด' };
+    const raw = keep.reduce((a, l) => a + l.score, 0);
+    const total = Math.round((raw * 100) / 50);
+    const stars = total >= 90 ? 5 : total >= 75 ? 4 : total >= 60 ? 3 : total >= 40 ? 2 : 1;
+    return { lines: keep, total, stars, badges: [], rank: stars >= 4 ? 'นักกายวิภาค' : 'ทบทวนอีกรอบ' };
+  }
   if (s.caseDef.mode === 'tutorial') {
     // ด่านฝึก: ไม่มีการวินิจฉัย ปรับสัดส่วนคะแนนที่เหลือให้เต็ม 100
     lines.shift();

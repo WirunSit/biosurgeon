@@ -102,6 +102,9 @@ export async function runSurgery(opts: {
 
   const trayTools = caseTools(caseDef);
   const hud = new SurgeryHUD(monitor.el, diff === 'easy', sound.on, trayTools);
+  // หุ่นจำลองกายวิภาคไม่มีสัญญาณชีพ — ซ่อนจอมอนิเตอร์
+  const lab = caseDef.mode === 'anatomy';
+  monitor.el.style.display = lab ? 'none' : '';
   const tools = new ToolSystem(sm.scene);
   tools.setScale(scene.toolScale ?? 0.62);
   const ray = new THREE.Raycaster();
@@ -345,25 +348,25 @@ export async function runSurgery(opts: {
 
   // ---------- เข้าห้องผ่าตัด ----------
   await sm.flyTo({ pos: base.target.clone().add(base.pos.clone().sub(base.target).multiplyScalar(zoom)), target: base.target }, 1.6);
-  vitals.underGA = caseDef.surgery.anesthesia !== 'local';
+  vitals.underGA = !lab && caseDef.surgery.anesthesia !== 'local';
   await pause(() =>
     modal({
-      title: caseDef.mode === 'tutorial' ? 'ห้องฝึก' : 'ห้องผ่าตัด',
-      speaker: caseDef.mode === 'tutorial' ? 'อาจารย์หมอ' : 'วิสัญญีแพทย์',
+      title: caseDef.mode === 'tutorial' ? 'ห้องฝึก' : lab ? 'ห้องปฏิบัติการกายวิภาค' : 'ห้องผ่าตัด',
+      speaker: caseDef.mode === 'tutorial' || lab ? 'อาจารย์หมอ' : 'วิสัญญีแพทย์',
       body: h(
         'div',
         {},
-        h('p', {}, caseDef.mode === 'tutorial' ? 'วันนี้ฝึกบนแผ่นฝึกก่อน ทำตามคำสั่งด้านซ้ายบนทีละขั้น' : caseDef.surgery.anesthesia === 'local' ? 'ผู้ป่วยรู้สึกตัวดี จะได้ยาชาเฉพาะที่ อธิบายให้ผู้ป่วยทราบก่อนทุกขั้นนะครับหมอ' : 'ผู้ป่วยหลับดีแล้วครับหมอ สัญญาณชีพคงที่ เริ่มผ่าตัดได้เลย'),
+        h('p', {}, caseDef.mode === 'tutorial' ? 'วันนี้ฝึกบนแผ่นฝึกก่อน ทำตามคำสั่งด้านซ้ายบนทีละขั้น' : lab ? 'วันนี้เราผ่าหุ่นจำลองกายวิภาคเพื่อดูโครงสร้างของระบบนี้ เปิดทีละชั้นแล้วระบุอวัยวะตามคำสั่ง — ไม่มีผู้ป่วยจริง ไม่ต้องรีบ ค่อย ๆ สังเกตตำแหน่งและรูปร่างของแต่ละอวัยวะ' : caseDef.surgery.anesthesia === 'local' ? 'ผู้ป่วยรู้สึกตัวดี จะได้ยาชาเฉพาะที่ อธิบายให้ผู้ป่วยทราบก่อนทุกขั้นนะครับหมอ' : 'ผู้ป่วยหลับดีแล้วครับหมอ สัญญาณชีพคงที่ เริ่มผ่าตัดได้เลย'),
         h(
           'ul',
           { class: 'howto' },
           h('li', {}, 'เลือกเครื่องมือจากถาดด้านขวา (หรือกดปุ่มตัวเลข 1–9, 0, -)'),
           h('li', {}, 'คลิก / แตะ / ลาก บนแผลตามคำสั่ง — คลิกขวาหรือกด Esc เพื่อวางเครื่องมือ'),
-          h('li', {}, 'ดูจอสัญญาณชีพด้านขวาบน ถ้าเลือดออกต้องรีบแก้ไข'),
+          lab ? h('li', {}, 'กด L เพื่อเปิด/ปิดป้ายชื่อ อวัยวะที่ระบุแล้วจะมีป้ายชื่อติดไว้') : h('li', {}, 'ดูจอสัญญาณชีพด้านขวาบน ถ้าเลือดออกต้องรีบแก้ไข'),
           h('li', {}, 'ใช้ล้อเมาส์หรือปุ่ม ＋/－ เพื่อซูม'),
         ),
       ),
-      buttons: [{ label: caseDef.mode === 'tutorial' ? 'เริ่มฝึก' : 'เริ่มผ่าตัด', value: 1, primary: true }],
+      buttons: [{ label: caseDef.mode === 'tutorial' ? 'เริ่มฝึก' : lab ? 'เริ่มผ่า' : 'เริ่มผ่าตัด', value: 1, primary: true }],
     }),
   );
 
@@ -416,14 +419,15 @@ export async function runSurgery(opts: {
   vitals.underGA = false;
   sfx.good();
   await modal({
-    title: caseDef.mode === 'tutorial' ? 'ฝึกครบทุกขั้นแล้ว!' : 'ผ่าตัดเสร็จสมบูรณ์!',
+    title: caseDef.mode === 'tutorial' ? 'ฝึกครบทุกขั้นแล้ว!' : lab ? 'สำรวจครบทุกอวัยวะแล้ว!' : 'ผ่าตัดเสร็จสมบูรณ์!',
     tone: 'good',
     speaker: 'อาจารย์หมอ',
     body:
-      caseDef.mode === 'tutorial'
+      caseDef.mode === 'tutorial' || lab
         ? `ใช้เวลา ${fmtTime(elapsed)} — ไปตอบคำถามทบทวนกัน`
         : `ใช้เวลา ${fmtTime(elapsed)} • เสียเลือดประมาณ ${Math.round(vitals.bloodLoss)} มล. — ไปดูอาการผู้ป่วยหลังผ่าตัดกัน`,
-    buttons: [{ label: caseDef.mode === 'tutorial' ? 'ไปต่อ' : 'ไปหอผู้ป่วย', value: 1, primary: true }],
+    buttons: [{ label: caseDef.mode === 'tutorial' || lab ? 'ไปต่อ' : 'ไปหอผู้ป่วย', value: 1, primary: true }],
   });
+  monitor.el.style.display = '';
   hud.destroy();
 }

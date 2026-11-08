@@ -1,9 +1,12 @@
 [
   {"id": "tutorial-00", "stage": 0, "system": "basic", "systemName": "ฝึกพื้นฐานศัลยแพทย์", "title": "วันแรกในโรงพยาบาล", "available": true},
+  {"id": "anatomy-01", "stage": 1, "system": "digestive", "systemName": "ระบบย่อยอาหาร", "title": "สำรวจช่องท้อง: ทางเดินอาหาร", "available": true, "kind": "anatomy"},
   {"id": "digestive-01", "stage": 1, "system": "digestive", "systemName": "ระบบย่อยอาหาร", "title": "ปวดท้องที่ย้ายตำแหน่ง", "available": true},
   {"id": "digestive-02", "stage": 1, "system": "digestive", "systemName": "ระบบย่อยอาหาร", "title": "กินหมูกระทะแล้วปวด", "available": true},
+  {"id": "anatomy-02", "stage": 2, "system": "respiratory", "systemName": "ระบบหายใจ", "title": "สำรวจช่องอก: หลอดลมและปอด", "available": true, "kind": "anatomy"},
   {"id": "respiratory-01", "stage": 2, "system": "respiratory", "systemName": "ระบบหายใจ", "title": "หายใจไม่อิ่มกลางสนาม", "available": true},
   {"id": "respiratory-02", "stage": 2, "system": "respiratory", "systemName": "ระบบหายใจ", "title": "ไอเรื้อรัง 40 ปีของการสูบบุหรี่", "available": true},
+  {"id": "anatomy-03", "stage": 3, "system": "circulatory", "systemName": "ระบบหมุนเวียนเลือด", "title": "สำรวจหัวใจและหลอดเลือดใหญ่", "available": true, "kind": "anatomy"},
   {"id": "circulatory-01", "stage": 3, "system": "circulatory", "systemName": "ระบบหมุนเวียนเลือด", "title": "หนูน้อยที่เหนื่อยตอนดูดนม", "available": true},
   {"id": "circulatory-02", "stage": 3, "system": "circulatory", "systemName": "ระบบหมุนเวียนเลือด", "title": "แน่นหน้าอกตอนขึ้นบันได", "available": true},
   {"id": "immune-01", "stage": 4, "system": "immune", "systemName": "ระบบน้ำเหลืองและภูมิคุ้มกัน", "title": "แผลถลอกที่ไม่ได้ล้าง", "available": true},

@@ -103,15 +103,18 @@ export function showLobby(index: CaseIndexEntry[], prog: Progress, t: TeacherSet
     for (const stg of stages) {
       const entries = index.filter((e) => e.stage === stg);
       const col = h('div', { class: `stage ${stg === 0 ? 'tutorial' : ''}` }, h('div', { class: 'stage-head' }, h('span', { class: 'stage-no' }, `ด่าน ${stg}`), entries[0].systemName));
-      entries.forEach((e, i) => {
+      let bed = 0;
+      // แล็บกายวิภาคอยู่การ์ดแรกของด่าน แล้วตามด้วยเคสผู้ป่วย
+      entries.sort((a, b) => Number(b.kind === 'anatomy') - Number(a.kind === 'anatomy'));
+      entries.forEach((e) => {
         const best = prog.best[e.id];
         const lock = caseLock(e, index, prog, t);
         const card = h(
           'button',
           { class: `case-card ${lock ? 'locked' : ''}`, disabled: !!lock },
-          h('span', { class: 'bed' }, stg === 0 ? 'ห้องฝึก' : `เตียง ${stg}${'AB'[i] ?? i + 1}`),
+          h('span', { class: 'bed' }, stg === 0 ? 'ห้องฝึก' : e.kind === 'anatomy' ? `แล็บกายวิภาค ${stg}` : `เตียง ${stg}${'ABCDE'[bed++] ?? bed}`),
           h('b', {}, `“${e.title}”`),
-          h('small', {}, lock ?? (best ? `ดีที่สุด ${best.score} คะแนน ${stars(best.stars)}` : stg === 0 ? 'เริ่มที่นี่ก่อน!' : 'ผู้ป่วยรายใหม่ — รอการตรวจ')),
+          h('small', {}, lock ?? (best ? `ดีที่สุด ${best.score} คะแนน ${stars(best.stars)}` : stg === 0 ? 'เริ่มที่นี่ก่อน!' : e.kind === 'anatomy' ? 'ผ่าหุ่นจำลอง ดูโครงสร้างของระบบ' : 'ผู้ป่วยรายใหม่ — รอการตรวจ')),
         );
         if (!lock) card.addEventListener('click', () => start(e));
         col.append(card);
@@ -612,6 +615,11 @@ function preOpScreen(c: CaseDef, s: Session, pre: NonNullable<CaseDef['preOp']>)
 // =====================================================================
 
 export async function showPostOp(c: CaseDef, s: Session): Promise<void> {
+  if (!c.postOp.outcomes || !c.postOp.advice) {
+    // ห้องปฏิบัติการกายวิภาค: ไม่มีผู้ป่วยให้ติดตาม — ตอบคำถามทบทวนอย่างเดียว
+    await runQuiz(c, s);
+    return;
+  }
   const sc = screen('postop');
   const o = c.postOp.outcomes;
   const stories: { text: string; tone: string }[] = [];
@@ -633,13 +641,17 @@ export async function showPostOp(c: CaseDef, s: Session): Promise<void> {
   const okAdv = await askChoice({ title: 'ให้คำแนะนำหลังผ่าตัด', speaker: 'คุณแม่ของผู้ป่วยถาม', ...adv });
   s.bio(okAdv);
   if (!okAdv) s.mistakes.push({ phase: 'หลังผ่าตัด', title: adv.q, explain: adv.explain });
+  await runQuiz(c, s);
+  sc.remove();
+}
+
+async function runQuiz(c: CaseDef, s: Session): Promise<void> {
   let n = 1;
   for (const q of c.postOp.quiz) {
     const ok = await askChoice({ title: `สรุปความรู้ ข้อ ${n++}/${c.postOp.quiz.length}`, speaker: 'อาจารย์หมอ', ...q });
     s.bio(ok);
-    if (!ok) s.mistakes.push({ phase: 'หลังผ่าตัด', title: q.q, explain: q.explain });
+    if (!ok) s.mistakes.push({ phase: c.mode === 'anatomy' ? 'ทบทวน' : 'หลังผ่าตัด', title: q.q, explain: q.explain });
   }
-  sc.remove();
 }
 
 // =====================================================================

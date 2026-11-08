@@ -317,8 +317,8 @@ export interface FieldDef {
 
 export interface CaseDef {
   id: string;
-  /** tutorial = ด่าน 0 ข้ามการสืบสวน/วินิจฉัย */
-  mode?: 'case' | 'tutorial';
+  /** tutorial = ด่าน 0, anatomy = ห้องปฏิบัติการกายวิภาค (ผ่าหุ่นจำลองดูโครงสร้าง) — ทั้งสองแบบข้ามการสืบสวน/วินิจฉัย */
+  mode?: 'case' | 'tutorial' | 'anatomy';
   system: string;
   systemName: string;
   stage: number;
@@ -371,8 +371,9 @@ export interface CaseDef {
     steps: StepDef[];
   };
   postOp: {
-    outcomes: { good: string; infection: string; ruptured: string; damage: string };
-    advice: ChoiceDef;
+    /** ไม่มีในห้องปฏิบัติการกายวิภาค */
+    outcomes?: { good: string; infection: string; ruptured: string; damage: string };
+    advice?: ChoiceDef;
     quiz: ChoiceDef[];
   };
   codex: { id: string; title: string; text: string };
@@ -385,4 +386,6 @@ export interface CaseIndexEntry {
   systemName: string;
   title: string;
   available: boolean;
+  /** anatomy = ห้องปฏิบัติการกายวิภาค (แสดงเป็นการ์ดแรกของด่าน) */
+  kind?: 'case' | 'anatomy';
 }
