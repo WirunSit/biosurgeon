@@ -21,8 +21,10 @@
   {"id": "anatomy-07", "stage": 7, "system": "musculoskeletal", "systemName": "ระบบโครงกระดูกและกล้ามเนื้อ", "title": "สำรวจต้นแขน: กล้ามเนื้อคู่และกระดูก", "available": true, "kind": "anatomy"},
   {"id": "musculoskeletal-01", "stage": 7, "system": "musculoskeletal", "systemName": "ระบบโครงกระดูกและกล้ามเนื้อ", "title": "ขาที่สั้นลง", "available": true},
   {"id": "musculoskeletal-02", "stage": 7, "system": "musculoskeletal", "systemName": "ระบบโครงกระดูกและกล้ามเนื้อ", "title": "เสียงป๊อกที่ส้นเท้า", "available": true},
+  {"id": "anatomy-08", "stage": 8, "system": "endocrine", "systemName": "ระบบต่อมไร้ท่อ", "title": "สำรวจต่อมไร้ท่อในช่องท้อง", "available": true, "kind": "anatomy"},
   {"id": "endocrine-01", "stage": 8, "system": "endocrine", "systemName": "ระบบต่อมไร้ท่อ", "title": "กินเยอะแต่ผอมลง", "available": true},
   {"id": "endocrine-02", "stage": 8, "system": "endocrine", "systemName": "ระบบต่อมไร้ท่อ", "title": "หน้ามืดทุกเช้า", "available": true},
+  {"id": "anatomy-09", "stage": 9, "system": "reproductive", "systemName": "ระบบสืบพันธุ์", "title": "สำรวจแบบจำลองอวัยวะสืบพันธุ์", "available": true, "kind": "anatomy"},
   {"id": "reproductive-01", "stage": 9, "system": "reproductive", "systemName": "ระบบสืบพันธุ์", "title": "ประจำเดือนขาดพร้อมปวดท้อง", "available": true},
   {"id": "reproductive-02", "stage": 9, "system": "reproductive", "systemName": "ระบบสืบพันธุ์", "title": "ปวดตอนตีสาม", "available": true}
 ]
