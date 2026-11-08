@@ -102,7 +102,8 @@
       0.03
      ],
      "color": "#b5574f",
-     "rough": 0.55
+     "rough": 0.55,
+     "model": "models/organs/biceps_r.glb"
     },
     {
      "id": "triceps",
@@ -119,7 +120,8 @@
       0.032
      ],
      "color": "#a64a44",
-     "rough": 0.55
+     "rough": 0.55,
+     "model": "models/organs/triceps_r.glb"
     },
     {
      "id": "humerus",

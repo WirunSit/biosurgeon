@@ -272,7 +272,8 @@
      ],
      "color": "#b5414a",
      "rough": 0.4,
-     "pulse": true
+     "pulse": true,
+     "model": "models/organs/heart.glb"
     },
     {
      "id": "diaphragm",

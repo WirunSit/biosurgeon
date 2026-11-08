@@ -285,7 +285,8 @@
       0.018
      ],
      "color": "#8b3a2e",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/liver.glb"
     },
     {
      "id": "stomach",
@@ -307,7 +308,8 @@
       0
      ],
      "color": "#d9928a",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/stomach.glb"
     },
     {
      "id": "duodenum",
@@ -332,7 +334,13 @@
      ],
      "r": 0.0065,
      "color": "#d98b82",
-     "hit": 0.007
+     "hit": 0.007,
+     "model": "models/organs/duodenum.glb",
+     "size": [
+      0.014,
+      0.006,
+      0.016
+     ]
     },
     {
      "id": "perf",

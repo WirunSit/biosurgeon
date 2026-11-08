@@ -136,7 +136,7 @@ export function showLobby(index: CaseIndexEntry[], prog: Progress, t: TeacherSet
         body: h(
           'div',
           {},
-          h('p', {}, 'โมเดลสร้างด้วยโค้ด (procedural) ด้วย three.js (MIT License) — โมเดลอวัยวะจาก Z-Anatomy (CC BY-SA 4.0) จะแสดงเครดิตที่นี่เมื่อนำมาใช้'),
+          h('p', {}, 'โมเดลอวัยวะ: BodyParts3D, (c) The Database Center for Life Science licensed under CC Attribution-Share Alike 2.1 Japan (ดัดแปลง: ลดรายละเอียดและแปลงไฟล์) • ห้องผ่าตัด เครื่องมือ และรูปทรงอื่นสร้างด้วยโค้ดด้วย three.js (MIT License)'),
           h('p', {}, 'ฟอนต์ Sarabun (SIL Open Font License) • เสียงสังเคราะห์ด้วย Web Audio • แผนภาพทั้งหมดวาดเพื่อการศึกษา ไม่ใช่ภาพทางการแพทย์จริง'),
           h('p', {}, 'รายละเอียดในไฟล์ CREDITS.md'),
         ),

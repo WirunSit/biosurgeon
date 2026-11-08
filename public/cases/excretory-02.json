@@ -99,11 +99,11 @@
         { "id": "iliac_artery", "label": "หลอดเลือดแดงอิลิแอก (ไปเลี้ยงขา)", "shape": "tube", "points": [[-0.0126, -0.0516, 0.055], [0.002, -0.0254, 0.055], [0.0166, 0.0008, 0.055]], "r": 0.0038, "color": "#c0283a", "hit": 0.006, "pulse": true },
         { "id": "iliac_vein", "label": "หลอดเลือดดำอิลิแอก", "shape": "tube", "points": [[-0.0047, -0.0571, 0.058], [0.0099, -0.0309, 0.058], [0.0244, -0.0046, 0.058]], "r": 0.0048, "color": "#3f5fb8", "hit": 0.006 },
         { "id": "fossa", "label": "แอ่งเชิงกรานขวา (ตำแหน่งวางไตใหม่)", "shape": "disc", "r": 0.011, "at": [-0.0137, -0.0146, 0.05], "color": "#c99a82", "hit": 0.01 },
-        { "id": "kidney", "label": "ไตใหม่ (จากพี่ชาย)", "shape": "ellipsoid", "at": [-0.0137, -0.0146, 0.044], "size": [0.011, 0.008, 0.019], "rot": [0, 29, 0], "color": "#cdb2a8", "rough": 0.35, "hidden": true },
+        { "id": "kidney", "model": "models/organs/kidney_r.glb", "label": "ไตใหม่ (จากพี่ชาย)", "shape": "ellipsoid", "at": [-0.0137, -0.0146, 0.044], "size": [0.011, 0.008, 0.019], "rot": [0, 29, 0], "color": "#cdb2a8", "rough": 0.35, "hidden": true },
         { "id": "renal_artery", "label": "หลอดเลือดแดงไต", "shape": "tube", "points": [[-0.0134, -0.0277, 0.046], [-0.0108, -0.0303, 0.047], [-0.0083, -0.0329, 0.048]], "r": 0.0022, "color": "#d0384a", "hit": 0.005, "hidden": true },
         { "id": "renal_vein", "label": "หลอดเลือดดำไต", "shape": "tube", "points": [[-0.0037, -0.0103, 0.046], [0.0007, -0.0116, 0.047], [0.0051, -0.0129, 0.048]], "r": 0.0026, "color": "#4b6cc8", "hit": 0.005, "hidden": true },
         { "id": "kidney_ureter", "label": "ท่อไตของไตใหม่", "shape": "tube", "points": [[-0.0067, 0.0021, 0.048], [-0.0008, 0.0085, 0.05], [0.005, 0.015, 0.052]], "r": 0.0018, "color": "#e3d39a", "hit": 0.005, "hidden": true },
-        { "id": "bladder", "label": "กระเพาะปัสสาวะ", "shape": "ellipsoid", "at": [0.0109, 0.0135, 0.062], "size": [0.013, 0.009, 0.011], "color": "#e6c0b4", "rough": 0.4 },
+        { "id": "bladder", "model": "models/organs/bladder.glb", "label": "กระเพาะปัสสาวะ", "shape": "ellipsoid", "at": [0.0109, 0.0135, 0.062], "size": [0.013, 0.009, 0.011], "color": "#e6c0b4", "rough": 0.4 },
         { "id": "urine", "shape": "disc", "r": 0.004, "at": [0.006, 0.012, 0.052], "color": "#f2d64b", "opacity": 0.85, "hidden": true, "noPick": true },
         { "id": "field_fluid", "shape": "disc", "r": 0.02, "at": [-0.004, -0.015, 0.052], "color": "#e8c0b4", "opacity": 0.6, "hidden": true, "scrub": "pool", "noPick": true }
       ]

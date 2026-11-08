@@ -107,7 +107,8 @@
       0
      ],
      "color": "#e8c8b8",
-     "rough": 0.6
+     "rough": 0.6,
+     "model": "models/organs/thymus.glb"
     },
     {
      "id": "thymus_L",
@@ -129,7 +130,8 @@
      ],
      "color": "#e8c8b8",
      "rough": 0.6,
-     "parent": "thymus"
+     "parent": "thymus",
+     "hidden": true
     },
     {
      "id": "heart",
@@ -147,7 +149,8 @@
      ],
      "color": "#b5414a",
      "rough": 0.4,
-     "pulse": true
+     "pulse": true,
+     "model": "models/organs/heart.glb"
     },
     {
      "id": "stomach",
@@ -169,7 +172,8 @@
       0
      ],
      "color": "#d9928a",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/stomach.glb"
     },
     {
      "id": "spleen",
@@ -191,7 +195,8 @@
       0
      ],
      "color": "#6e2636",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/spleen.glb"
     },
     {
      "id": "aorta",

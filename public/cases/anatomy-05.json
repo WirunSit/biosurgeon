@@ -107,7 +107,8 @@
       0
      ],
      "color": "#8e3b30",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/kidney_r.glb"
     },
     {
      "id": "kidney_L",
@@ -129,7 +130,8 @@
       0
      ],
      "color": "#8e3b30",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/kidney_l.glb"
     },
     {
      "id": "adrenal_R",
@@ -146,7 +148,8 @@
       0.005
      ],
      "color": "#d9a24a",
-     "hit": 0.005
+     "hit": 0.005,
+     "model": "models/organs/adrenal_r.glb"
     },
     {
      "id": "adrenal_L",
@@ -163,7 +166,8 @@
       0.005
      ],
      "color": "#d9a24a",
-     "hit": 0.005
+     "hit": 0.005,
+     "model": "models/organs/adrenal_l.glb"
     },
     {
      "id": "aorta",
@@ -340,7 +344,8 @@
       0.011
      ],
      "color": "#e6c0b4",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/bladder.glb"
     },
     {
      "id": "cortex",

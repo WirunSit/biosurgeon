@@ -45,7 +45,7 @@ npm run build
 |---|---|
 | 0 ต้นแบบ (เคส 1.1) | ✅ |
 | 1 ระบบแกนกลาง | ✅ ฉากผ่าตัดจาก JSON, เครื่องมือ 27 ชิ้น, มินิเกม 6 แบบ, ด่าน 0, โหมดครู, ส่งคะแนนเข้า Google Sheets |
-| 2 Pipeline โมเดล | ⚠️ มีสคริปต์ Blender + `blender_scripts/organs.csv` + ตัวโหลด GLB แล้ว แต่ยังไม่ได้รัน (ต้องมี Blender และไฟล์ Z-Anatomy) — ตอนนี้ทุกเคสใช้รูปทรงพื้นฐาน |
+| 2 โมเดลอวัยวะจริง | ✅ โมเดลจาก BodyParts3D 31 ชิ้น (`public/models/organs/`) ใช้ใน 17 ด่าน แปลงด้วย `tools/bp3d-to-glb.mjs` (ไม่ต้องใช้ Blender) — อวัยวะที่ไม่มีในชุดข้อมูล (มดลูก รังไข่ ต่อมไทรอยด์ กระดูกที่ต้องหัก) ยังใช้รูปทรงพื้นฐาน |
 | 3 เนื้อหา 18 เคส | ✅ เล่นได้ครบ 18 เคส + ด่าน 0 (ผ่านการทดสอบด้วยตัวเล่นอัตโนมัติ) |
 | 4 ทดลองใช้จริง | 🟡 เตรียมคู่มือครู แบบทดสอบก่อน-หลังเรียน และแบบสอบถามแล้ว (`teacher/`) |
 
@@ -120,7 +120,18 @@ blender_scripts/          ระยะ 2: extract_organs.py, make_pathology.py, 
 teacher/                  apps-script.gs, คู่มือครู, แบบทดสอบ, แบบสอบถาม
 ```
 
-## ระยะ 2: โมเดลอวัยวะจาก Z-Anatomy
+## ระยะ 2: โมเดลอวัยวะจริง (BodyParts3D)
+
+```bash
+node tools/bp3d-to-glb.mjs <โฟลเดอร์ไฟล์ .stl จาก BodyParts3D> public/models/organs
+```
+
+- รายชื่อโมเดลและรหัส FMA ของชิ้นที่รวมกันอยู่ใน `tools/bp3d-models.json` (ดาวน์โหลด `FMA<รหัส>.stl` จาก [สำเนาบน GitHub](https://github.com/Kevin-Mattheus-Moerman/BodyParts3D/tree/main/assets/BodyParts3D_data/stl))
+- แกนของ BodyParts3D (x = ซ้ายผู้ป่วย, y = หลัง, z = ศีรษะ, มม.) ถูกหมุนเป็นแกนของเกมให้อัตโนมัติ
+- ในไฟล์เคสใส่ `"model": "models/organs/<ไฟล์>.glb"` ให้วัตถุ (วัตถุทรงท่อต้องใส่ `size` เพื่อกำหนดขนาดโมเดล) รูปทรงพื้นฐานเดิมจะกลายเป็นพื้นที่คลิกที่มองไม่เห็น ขั้นตอนเดิมจึงทำงานเหมือนเดิม
+- สัญญาอนุญาต CC BY-SA 2.1 Japan — ต้องคงเครดิตใน `CREDITS.md` และหน้าเครดิตในเกม
+
+### ทางเลือก: Z-Anatomy ผ่าน Blender
 
 ```bash
 blender Z-Anatomy.blend --background --python blender_scripts/extract_organs.py -- blender_scripts/organs.csv public/models/organs

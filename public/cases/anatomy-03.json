@@ -110,7 +110,8 @@
       0.045
      ],
      "color": "#eaa3a3",
-     "rough": 0.6
+     "rough": 0.6,
+     "model": "models/organs/lung_r.glb"
     },
     {
      "id": "lung_L",
@@ -127,7 +128,8 @@
       0.042
      ],
      "color": "#eaa3a3",
-     "rough": 0.6
+     "rough": 0.6,
+     "model": "models/organs/lung_l.glb"
     },
     {
      "id": "heart",
@@ -150,7 +152,8 @@
      ],
      "color": "#b5414a",
      "rough": 0.4,
-     "pulse": true
+     "pulse": true,
+     "model": "models/organs/heart.glb"
     },
     {
      "id": "lad",

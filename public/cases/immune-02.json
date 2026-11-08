@@ -99,12 +99,12 @@
       ],
       "cavity": { "color": "#5b1f1f", "depth": 0.07 },
       "objects": [
-        { "id": "spleen", "label": "ม้าม (มีรอยฉีก)", "shape": "ellipsoid", "at": [0.01, -0.028, 0.055], "size": [0.02, 0.012, 0.028], "rot": [0, 30, 0], "color": "#6e2636", "rough": 0.35, "draggable": true },
+        { "id": "spleen", "model": "models/organs/spleen.glb", "label": "ม้าม (มีรอยฉีก)", "shape": "ellipsoid", "at": [0.01, -0.028, 0.055], "size": [0.02, 0.012, 0.028], "rot": [0, 30, 0], "color": "#6e2636", "rough": 0.35, "draggable": true },
         { "id": "tear", "shape": "box", "size": [0.003, 0.003, 0.02], "at": [0.004, -0.028, 0.043], "rot": [0, 30, 0], "color": "#2a0508", "parent": "spleen", "noPick": true },
         { "id": "hilum", "label": "หลอดเลือดม้าม (ขั้วม้าม)", "shape": "tube", "points": [[-0.016, -0.008, 0.052], [-0.008, -0.014, 0.05], [-0.002, -0.018, 0.049]], "r": 0.0028, "color": "#c0283a", "hit": 0.006 },
-        { "id": "stomach", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": [-0.024, -0.048, 0.05], "size": [0.018, 0.013, 0.02], "color": "#d9928a", "rough": 0.45 },
+        { "id": "stomach", "model": "models/organs/stomach.glb", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": [-0.024, -0.048, 0.05], "size": [0.018, 0.013, 0.02], "color": "#d9928a", "rough": 0.45 },
         { "id": "pancreas_tail", "label": "หางตับอ่อน", "shape": "tube", "points": [[-0.036, 0.004, 0.058], [-0.024, 0.0, 0.056], [-0.014, -0.004, 0.054]], "r": 0.004, "color": "#e3c48e", "hit": 0.006 },
-        { "id": "liver", "label": "ตับ (ไม่มีรอยฉีก)", "shape": "ellipsoid", "at": [-0.042, -0.02, 0.05], "size": [0.022, 0.014, 0.024], "color": "#8b3a2e", "rough": 0.35 },
+        { "id": "liver", "model": "models/organs/liver.glb", "label": "ตับ (ไม่มีรอยฉีก)", "shape": "ellipsoid", "at": [-0.042, -0.02, 0.05], "size": [0.022, 0.014, 0.024], "color": "#8b3a2e", "rough": 0.35 },
         { "id": "bowel", "label": "ลำไส้เล็ก", "shape": "tube", "points": [[-0.036, 0.03, 0.05], [-0.015, 0.038, 0.049], [0.005, 0.03, 0.05], [0.02, 0.038, 0.051]], "r": 0.009, "color": "#db9188" },
         { "id": "blood_pool", "shape": "disc", "r": 0.035, "at": [-0.01, -0.01, 0.045], "color": "#9b111e", "opacity": 0.9, "blood": true, "scrub": "pool", "noPick": true },
         { "id": "field_fluid", "shape": "disc", "r": 0.03, "at": [-0.01, -0.01, 0.046], "color": "#e8c0b4", "opacity": 0.6, "hidden": true, "scrub": "pool", "noPick": true }

@@ -115,7 +115,8 @@
       0
      ],
      "color": "#8b3a2e",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/liver.glb"
     },
     {
      "id": "gallbladder",
@@ -137,7 +138,8 @@
       0
      ],
      "color": "#5f8f4e",
-     "rough": 0.3
+     "rough": 0.3,
+     "model": "models/organs/gallbladder.glb"
     },
     {
      "id": "stomach",
@@ -159,7 +161,8 @@
       0
      ],
      "color": "#d9928a",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/stomach.glb"
     },
     {
      "id": "pancreas",
@@ -196,7 +199,13 @@
      "caps": true,
      "color": "#e3c48e",
      "rough": 0.55,
-     "hit": 0.007
+     "hit": 0.007,
+     "model": "models/organs/pancreas.glb",
+     "size": [
+      0.03,
+      0.007,
+      0.01
+     ]
     },
     {
      "id": "duodenum",
@@ -226,7 +235,13 @@
      ],
      "r": 0.0055,
      "color": "#d98b82",
-     "hit": 0.006
+     "hit": 0.006,
+     "model": "models/organs/duodenum.glb",
+     "size": [
+      0.014,
+      0.006,
+      0.016
+     ]
     },
     {
      "id": "spleen",
@@ -248,7 +263,8 @@
       0
      ],
      "color": "#6e2636",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/spleen.glb"
     },
     {
      "id": "small_int",
@@ -340,7 +356,13 @@
      "r": 0.0075,
      "color": "#c9907a",
      "rough": 0.5,
-     "hit": 0.008
+     "hit": 0.008,
+     "model": "models/organs/colon.glb",
+     "size": [
+      0.046,
+      0.01,
+      0.034
+     ]
     },
     {
      "id": "appendix",

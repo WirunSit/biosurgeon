@@ -276,6 +276,8 @@ export interface FieldObjectDef {
   axis?: 'x' | 'y' | 'z';
   parent?: string;
   model?: string;
+  /** หมุนเฉพาะโมเดล (องศา) — โมเดลวางตามท่านอนหงาย: x = ซ้ายผู้ป่วย, y = ด้านหน้า, z = ทางเท้า */
+  modelRot?: V3;
   /** เป็นแอ่งเลือด: จะขยายเมื่อมีเลือดออก */
   blood?: boolean;
 }

@@ -261,7 +261,11 @@ export class FieldScene implements SurgeryScene {
     const pivot = d.at ? this.P(d.at) : d.points ? this.P(d.points[0]) : this.P([0, 0, 0.04]);
     group.position.copy(pivot);
     const opacity = d.opacity ?? 1;
-    const mat = new THREE.MeshStandardMaterial({
+    // ผิวอวัยวะเปียกชื้น: ชั้นเคลือบใส (clearcoat) ให้แสงสะท้อนแบบเนื้อเยื่อจริง
+    const wet = !d.inside && d.shape !== 'ring' && d.shape !== 'sheet' && (d.metal ?? 0) < 0.5;
+    const mat = new THREE.MeshPhysicalMaterial({
+      clearcoat: wet ? 0.55 : 0,
+      clearcoatRoughness: 0.32,
       color: d.color,
       roughness: d.rough ?? 0.42,
       metalness: d.metal ?? 0,
@@ -388,19 +392,29 @@ export class FieldScene implements SurgeryScene {
     };
     this.objs.set(d.id, o);
     if (d.model) {
-      // ระยะ 2: โมเดลจริงจาก Z-Anatomy แทนที่รูปทรงพื้นฐาน (ถ้าโหลดไม่ได้ก็ใช้รูปทรงเดิมต่อ)
-      loadModel(d.model, s).then((model) => {
+      // โมเดลอวัยวะจริง (BodyParts3D) แทนรูปทรงพื้นฐาน — ถ้าโหลดไม่ได้ก็ใช้รูปทรงเดิมต่อ
+      // โมเดลใช้แสดงผลอย่างเดียว การคลิกยังใช้รูปทรงเดิม (มองไม่เห็น) ขั้นตอนที่ทดสอบไว้จึงคลิกได้เหมือนเดิม
+      // และโมเดลชิ้นใหญ่จะไม่บังการคลิกอวัยวะข้างเคียง
+      loadModel(`${import.meta.env.BASE_URL}${d.model}`, s).then((model) => {
         if (!model) return;
+        if (d.modelRot) model.rotation.set(...(d.modelRot.map((x) => THREE.MathUtils.degToRad(x)) as [number, number, number]));
+        // กันอวัยวะโผล่ทะลุชั้นเนื้อเยื่อ: ถ้าส่วนบนของโมเดลจะสูงกว่าชั้นล่างสุด ให้ย่อทั้งชิ้น (คงสัดส่วนจริง)
+        const halfY = new THREE.Box3().setFromObject(model).getSize(new THREE.Vector3()).y / 2;
+        const depth = this.Y0 - (group.position.y + o.centerLocal.y);
+        const deepest = this.def.layers[this.def.layers.length - 1]?.depth ?? 0;
+        const limit = depth - deepest - 0.003 * this.unit;
+        if (limit > 0 && halfY > limit) model.scale.multiplyScalar(limit / halfY);
+        model.position.add(o.centerLocal);
         model.traverse((c) => {
           const m = c as THREE.Mesh;
           if (m.isMesh) {
             m.userData.targetId = d.id;
             m.material = mat;
             m.castShadow = true;
-            this.pickables.push(m);
+            m.receiveShadow = true;
           }
         });
-        for (const m of meshes) if (m.material !== proxyMat) m.visible = false;
+        for (const m of meshes) if (m.material !== proxyMat) m.material = proxyMat;
         group.add(model);
       });
     }

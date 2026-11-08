@@ -94,12 +94,12 @@
         { "id": "port2", "label": "ท้องด้านขวาบน", "shape": "ring", "r": 0.006, "at": [-0.035, 0.0, -0.001], "color": "#22d3ee", "hit": 0.008 },
         { "id": "port3", "label": "ท้องด้านซ้ายบน", "shape": "ring", "r": 0.006, "at": [0.035, 0.0, -0.001], "color": "#22d3ee", "hit": 0.008 },
         { "id": "port4", "label": "ใต้ชายโครงซ้าย", "shape": "ring", "r": 0.006, "at": [0.052, -0.03, -0.001], "color": "#22d3ee", "hit": 0.008 },
-        { "id": "stomach", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": [0.008, 0.004, 0.046], "size": [0.052, 0.014, 0.026], "color": "#d9928a", "rough": 0.45, "draggable": true },
-        { "id": "pancreas", "label": "ตับอ่อน", "shape": "tube", "points": [[-0.045, 0.01, 0.068], [-0.01, 0.0, 0.066], [0.02, -0.006, 0.065], [0.05, -0.014, 0.063]], "radii": [0.01, 0.0075, 0.0068, 0.006], "caps": true, "color": "#e3c48e", "rough": 0.55, "hit": 0.008 },
+        { "id": "stomach", "model": "models/organs/stomach.glb", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": [0.008, 0.004, 0.046], "size": [0.052, 0.014, 0.026], "color": "#d9928a", "rough": 0.45, "draggable": true },
+        { "id": "pancreas", "model": "models/organs/pancreas.glb", "size": [0.05, 0.009, 0.014], "label": "ตับอ่อน", "shape": "tube", "points": [[-0.045, 0.01, 0.068], [-0.01, 0.0, 0.066], [0.02, -0.006, 0.065], [0.05, -0.014, 0.063]], "radii": [0.01, 0.0075, 0.0068, 0.006], "caps": true, "color": "#e3c48e", "rough": 0.55, "hit": 0.008 },
         { "id": "duct", "label": "ท่อตับอ่อน (นำน้ำย่อยไปลำไส้เล็ก)", "shape": "tube", "points": [[-0.045, 0.013, 0.0581], [-0.01, 0.003, 0.0587], [0.02, -0.003, 0.0585], [0.05, -0.011, 0.0574]], "r": 0.0011, "color": "#fff4c2", "emissive": "#806a10", "hit": 0.0028 },
         { "id": "us_area", "label": "บริเวณที่ต้องตรวจด้วยหัวอัลตราซาวนด์", "shape": "disc", "r": 0.016, "at": [0.026, -0.01, 0.0565], "color": "#38bdf8", "opacity": 0.35, "scrub": "fade", "hidden": true },
         { "id": "tumor", "label": "ก้อนเนื้องอกหลั่งอินซูลิน", "shape": "sphere", "r": 0.0048, "at": [0.03, -0.015, 0.0595], "color": "#b5476a", "emissive": "#ff6aa0", "rough": 0.35, "hidden": true, "draggable": true, "hit": 0.006 },
-        { "id": "spleen", "label": "ม้าม", "shape": "ellipsoid", "at": [0.065, -0.024, 0.062], "size": [0.014, 0.01, 0.02], "color": "#6e2636", "rough": 0.35 },
+        { "id": "spleen", "model": "models/organs/spleen.glb", "label": "ม้าม", "shape": "ellipsoid", "at": [0.065, -0.024, 0.062], "size": [0.014, 0.01, 0.02], "color": "#6e2636", "rough": 0.35 },
         { "id": "field_fluid", "shape": "disc", "r": 0.018, "at": [0.022, -0.008, 0.0575], "color": "#e8c0b4", "opacity": 0.6, "hidden": true, "scrub": "pool", "noPick": true }
       ]
     },

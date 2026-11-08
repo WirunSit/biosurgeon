@@ -239,7 +239,8 @@
       0.0112
      ],
      "color": "#e6c0b4",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/bladder.glb"
     },
     {
      "id": "prostate",
@@ -256,7 +257,8 @@
       0.007
      ],
      "color": "#c9a08a",
-     "rough": 0.5
+     "rough": 0.5,
+     "model": "models/organs/prostate.glb"
     },
     {
      "id": "urethra",
@@ -303,7 +305,8 @@
       0
      ],
      "color": "#d8c49a",
-     "rough": 0.5
+     "rough": 0.5,
+     "model": "models/organs/seminal_vesicle.glb"
     },
     {
      "id": "vas",

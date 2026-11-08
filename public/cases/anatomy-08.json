@@ -102,7 +102,8 @@
       0.015
      ],
      "color": "#8b3a2e",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/liver.glb"
     },
     {
      "id": "stomach",
@@ -124,7 +125,8 @@
       0
      ],
      "color": "#d9928a",
-     "rough": 0.45
+     "rough": 0.45,
+     "model": "models/organs/stomach.glb"
     },
     {
      "id": "pancreas",
@@ -161,7 +163,13 @@
      "caps": true,
      "color": "#e3c48e",
      "rough": 0.55,
-     "hit": 0.006
+     "hit": 0.006,
+     "model": "models/organs/pancreas.glb",
+     "size": [
+      0.032,
+      0.007,
+      0.01
+     ]
     },
     {
      "id": "islets",
@@ -203,7 +211,8 @@
       0
      ],
      "color": "#8e3b30",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/kidney_r.glb"
     },
     {
      "id": "kidney_L",
@@ -225,7 +234,8 @@
       0
      ],
      "color": "#8e3b30",
-     "rough": 0.35
+     "rough": 0.35,
+     "model": "models/organs/kidney_l.glb"
     },
     {
      "id": "adrenal_R",
@@ -242,7 +252,8 @@
       0.0055
      ],
      "color": "#e0a83a",
-     "hit": 0.005
+     "hit": 0.005,
+     "model": "models/organs/adrenal_r.glb"
     },
     {
      "id": "adrenal_L",
@@ -259,7 +270,8 @@
       0.0055
      ],
      "color": "#e0a83a",
-     "hit": 0.005
+     "hit": 0.005,
+     "model": "models/organs/adrenal_l.glb"
     },
     {
      "id": "adr_cortex",

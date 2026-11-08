@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 400" font-family="Sarabun, 'Noto Sans Thai', sans-serif">
+  <title>แผนภาพมือขวา (ด้านฝ่ามือ)</title>
+  <rect width="600" height="400" fill="#eef4f7"/>
+  <g fill="#f0cfb6" stroke="#b9876a" stroke-width="3" stroke-linejoin="round">
+    <path d="M220 390 L220 250 Q215 205 235 190 L380 190 Q400 205 395 250 L395 390 Z"/>
+    <rect x="236" y="70" width="34" height="130" rx="17"/>
+    <rect x="276" y="44" width="34" height="156" rx="17"/>
+    <rect x="316" y="58" width="34" height="142" rx="17"/>
+    <rect x="356" y="100" width="30" height="110" rx="15"/>
+    <path d="M222 255 Q180 240 150 190 Q140 170 160 160 Q180 158 196 185 Q215 215 236 225 Z"/>
+  </g>
+  <path d="M232 300 Q300 280 384 300" stroke="#b9876a" stroke-width="2" fill="none" opacity="0.6"/>
+  <g font-size="14" fill="#475569" text-anchor="middle">
+    <text x="165" y="150">นิ้วโป้ง</text><text x="253" y="62">ชี้</text><text x="293" y="36">กลาง</text><text x="333" y="50">นาง</text><text x="371" y="92">ก้อย</text>
+  </g>
+  <text x="470" y="200" font-size="14" fill="#475569">มือขวา</text>
+  <text x="470" y="220" font-size="14" fill="#475569">ด้านฝ่ามือ</text>
+  <text x="300" y="384" font-size="12" fill="#64748b" text-anchor="middle">ข้อมือ</text>
+</svg>
