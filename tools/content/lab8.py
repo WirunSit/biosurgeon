@@ -3,29 +3,36 @@ from lab4 import TRUNK_LAYERS, trunk_open
 
 # ---------------- ด่าน 8 ระบบต่อมไร้ท่อ ----------------
 kid = "#8e3b30"
+# ช่องท้องวางตามพิกัดจริง (สเกล 1:1) เหมือนแล็บ 1 — ไม่มีลำไส้ใหญ่ จะได้เห็นตับอ่อนเมื่อยกกระเพาะ
+ATLAS8 = {"origin": [0.0, 0.2, -1.025], "depth": 0.034}
 objects = [
-    {"id": "liver", "label": "ตับ", "shape": "ellipsoid", "at": A(-0.042, -0.064, 0.045), "size": [0.022, 0.011, 0.015], "color": "#8b3a2e", "rough": 0.35},
-    {"id": "stomach", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": A(0.018, -0.02, 0.04), "size": [0.026, 0.012, 0.02], "rot": [0, -20, 0], "color": "#d9928a", "rough": 0.45},
-    {"id": "pancreas", "label": "ตับอ่อน", "shape": "tube", "points": T([(-0.016, -0.004, 0.056), (0.006, -0.01, 0.055), (0.026, -0.016, 0.054), (0.044, -0.022, 0.054)]), "radii": [0.0068, 0.0055, 0.005, 0.0045], "caps": True, "color": "#e3c48e", "rough": 0.55, "hit": 0.006},
-    {"id": "islets", "shape": "stones", "count": 5, "r": 0.0012, "at": A(0.02, -0.014, 0.0495), "size": [0.016, 0.002, 0.006], "color": "#f2a6c8", "emissive": "#ff6aa0", "parent": "pancreas", "hidden": True},
-    {"id": "kidney_R", "label": "ไตขวา", "shape": "ellipsoid", "at": A(-0.036, -0.008, 0.064), "size": [0.011, 0.009, 0.019], "rot": [0, -12, 0], "color": kid, "rough": 0.35},
-    {"id": "kidney_L", "label": "ไตซ้าย", "shape": "ellipsoid", "at": A(0.042, 0.012, 0.064), "size": [0.011, 0.009, 0.019], "rot": [0, 12, 0], "color": kid, "rough": 0.35},
-    {"id": "adrenal_R", "label": "ต่อมหมวกไตขวา", "shape": "ellipsoid", "at": A(-0.033, -0.031, 0.06), "size": [0.0075, 0.0038, 0.0055], "color": "#e0a83a", "hit": 0.005},
-    {"id": "adrenal_L", "label": "ต่อมหมวกไตซ้าย", "shape": "ellipsoid", "at": A(0.04, -0.01, 0.06), "size": [0.0075, 0.0038, 0.0055], "color": "#e0a83a", "hit": 0.005},
-    {"id": "adr_cortex", "label": "หมวกไตชั้นนอก (คอร์เทกซ์)", "shape": "ellipsoid", "at": A(-0.033, -0.031, 0.06), "size": [0.0075, 0.0015, 0.0055], "color": "#e8b84a", "hidden": True},
-    {"id": "adr_medulla", "label": "หมวกไตชั้นใน (เมดัลลา)", "shape": "ellipsoid", "at": A(-0.0295, -0.031, 0.0582), "size": [0.0028, 0.0006, 0.0022], "color": "#8a4a2a", "hidden": True, "hit": 0.003},
-    {"id": "small_int", "label": "ลำไส้เล็ก", "shape": "tube", "points": T([(-0.02, 0.03, 0.045), (0.02, 0.032, 0.046), (0.022, 0.044, 0.046), (-0.018, 0.048, 0.045), (-0.02, 0.06, 0.046), (0.018, 0.062, 0.046)]), "r": 0.006, "color": "#e3a092", "rough": 0.4},
+    atlas_obj("liver", "ตับ", "liver", "#8b3a2e", ATLAS8, rough=0.35, draggable=True),
+    atlas_obj("stomach", "กระเพาะอาหาร", "stomach", "#d9928a", ATLAS8, rough=0.45, draggable=True),
+    atlas_obj("pancreas", "ตับอ่อน", "pancreas", "#e3c48e", ATLAS8, rough=0.55),
+    # กลุ่มเซลล์ไอส์เลตกระจายอยู่ในตับอ่อนส่วนหาง (แสดงเป็นจุดเรืองแสงขยายใหญ่ให้เห็น)
+    atlas_blob("islets", None, ATLAS8, frac("pancreas", 0.72, 0.8, 0.45), [0.022, 0.003, 0.012], "#f2a6c8", shape="stones", count=7, r=0.0028, emissive="#ff6aa0", parent="pancreas", hidden=True, motion="none"),
+    atlas_obj("kidney_R", "ไตขวา", "kidney_r", kid, ATLAS8, rough=0.35),
+    atlas_obj("kidney_L", "ไตซ้าย", "kidney_l", kid, ATLAS8, rough=0.35),
+    atlas_obj("adrenal_R", "ต่อมหมวกไตขวา", "adrenal_r", "#e0a83a", ATLAS8),
+    atlas_obj("adrenal_L", "ต่อมหมวกไตซ้าย", "adrenal_l", "#e0a83a", ATLAS8),
+    # ต่อมหมวกไตขวาผ่าครึ่ง: ชั้นนอกสีเหลือง ชั้นในสีน้ำตาลแดงอยู่กลาง
+    atlas_blob("adr_cortex", "หมวกไตชั้นนอก (คอร์เทกซ์)", ATLAS8, frac("adrenal_r", 0.5, 0.45, 0.32), [0.015, 0.006, 0.016], "#e8b84a", hidden=True, motion="none"),
+    atlas_blob("adr_medulla", "หมวกไตชั้นใน (เมดัลลา)", ATLAS8, frac("adrenal_r", 0.55, 0.72, 0.22), [0.006, 0.0018, 0.008], "#8a4a2a", hidden=True, hit=0.006, motion="none"),
+    atlas_obj("small_int", "ลำไส้เล็ก", "jejunum", "#e3a092", ATLAS8, rough=0.4),
+    atlas_obj("ileum", None, "ileum", "#dc9a8c", ATLAS8, rough=0.4, parent="small_int"),
 ]
 NOT_ENDO = lambda n, why: f"นี่คือ{n} — {why}"
 steps = trunk_open("เยื่อบุช่องท้อง") + [
     {"id": "lift", "say": "ยกกระเพาะอาหารขึ้น (กดที่กระเพาะแล้วลาก) เพื่อดูตับอ่อนด้านหลัง", "tool": "forceps", "action": "drag", "target": "stomach", "minDrag": 0.012,
-     "onSuccess": ["move:stomach:-0.004:-0.024:-0.016", "label:stomach"]},
+     "onSuccess": ["move:stomach:-0.004:-0.022:-0.016", "label:stomach"]},
     click("pancreas", "ระบุตับอ่อน", "pancreas",
           "ตับอ่อนเป็นต่อมสองแบบในอวัยวะเดียว: เนื้อส่วนใหญ่สร้างน้ำย่อยส่งตามท่อไปลำไส้เล็ก (ต่อมมีท่อ) และมีกลุ่มเซลล์ไอส์เลตกระจายอยู่ หลั่งฮอร์โมนเข้าเลือดโดยตรง (ต่อมไร้ท่อ)",
           onSuccess=["show:islets"], mistakes=[wrong("small_int", NOT_ENDO("ลำไส้เล็ก", "ตับอ่อนอยู่หลังกระเพาะอาหาร ทอดตัวขวางลำตัว"))]),
     {"id": "islet-q", "say": "จุดสีชมพูที่เรืองแสงคือกลุ่มเซลล์ไอส์เลต", "action": "choice",
      "choice": q("กลุ่มเซลล์ไอส์เลตในตับอ่อนหลั่งฮอร์โมนใดที่ควบคุมน้ำตาลในเลือด?", ["อินซูลิน (ลดน้ำตาล) จากเซลล์บีตา และกลูคากอน (เพิ่มน้ำตาล) จากเซลล์แอลฟา", "อะดรีนาลีนและนอร์อะดรีนาลีน", "ไทรอกซิน", "น้ำย่อยทริปซิน"],
                  "ไอส์เลตมีเพียงราว 1–2% ของเนื้อตับอ่อน แต่มีหลายแสนกลุ่ม หลั่งฮอร์โมนเข้าสู่หลอดเลือดฝอยที่อยู่รอบ ๆ โดยตรง (เคส 8.2)")},
+    {"id": "lift-liver", "say": "ต่อมหมวกไตขวาซ่อนอยู่หลังตับ ใช้ปากคีบยกตับขึ้นไปทางศีรษะ (กดที่ตับแล้วลาก)", "tool": "forceps", "action": "drag", "target": "liver", "minDrag": 0.012,
+     "onSuccess": ["move:liver:0.0:-0.075:-0.004", "label:liver"]},
     click("adrenal", "ระบุต่อมหมวกไตขวา — ต่อมสีเหลืองทองที่วางอยู่บนขั้วบนของไต", "adrenal_R",
           "ต่อมหมวกไตแบ่งเป็น 2 ชั้นที่ทำงานต่างกันโดยสิ้นเชิง จะผ่าดูในขั้นถัดไป",
           label=["adrenal_R", "adrenal_L", "kidney_R"],
@@ -63,6 +70,6 @@ quiz = [
 lab("anatomy-08", 8, "endocrine", "ระบบต่อมไร้ท่อ", "สำรวจต่อมไร้ท่อในช่องท้อง",
     ("ผ่าหุ่นจำลองช่องท้อง ดูตับอ่อนและไอส์เลต ผ่าต่อมหมวกไต แล้วระบุต่อมไร้ท่อทั่วร่างกาย",
      "ห้องปฏิบัติการกายวิภาค: ต่อมไร้ท่อหลายต่อมซ่อนอยู่ลึกในช่องท้อง เราจะเปิดหาตับอ่อนและต่อมหมวกไต แล้วดูแผนที่ต่อมไร้ท่อทั่วร่างกาย"),
-    steps, objects, TRUNK_LAYERS("เยื่อบุช่องท้อง"), {"incision": {"points": [[0.0, -0.09], [0.0, 0.09]]}}, "incision", quiz,
+    steps, objects, TRUNK_LAYERS("เยื่อบุช่องท้อง"), {"incision": {"points": [[0.0, -0.17], [0.0, 0.17]]}}, "incision", quiz,
     {"id": "lab-endocrine", "title": "ต่อมไร้ท่อทั่วร่างกาย", "text": "ต่อมไร้ท่อหลั่งฮอร์โมนเข้าสู่เลือดโดยตรง ไฮโพทาลามัสและต่อมใต้สมองควบคุมต่อมอื่น ไทรอยด์และพาราไทรอยด์อยู่ที่คอ ต่อมหมวกไตอยู่บนไต (ชั้นนอกสร้างคอร์ติซอล ชั้นในสร้างอะดรีนาลีน) ไอส์เลตของตับอ่อนสร้างอินซูลินและกลูคากอน รังไข่และอัณฑะสร้างฮอร์โมนเพศ"},
-    window=(0.09, 0.1), center=(0.0, -0.06), cavity=("#5e2e2a", 0.08))
+    window=(0.15, 0.2), center=(0.0, -0.06), cavity=("#5e2e2a", 0.17), atlas=ATLAS8)

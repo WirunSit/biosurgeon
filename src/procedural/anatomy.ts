@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { capEnds, paramSurface, varTube } from './geom';
 import { WIN, Y0, surfaceY } from './patient';
+import { bakeRest, longAxis, tissueMaterial, type TissueKind } from './tissue';
 
 /**
  * กายวิภาคบริเวณท้องน้อยขวาแบบเรียบง่าย (ระยะ 0 — graybox)
@@ -16,8 +17,9 @@ const smooth = (e0: number, e1: number, x: number) => {
   return t * t * (3 - 2 * t);
 };
 
-function organMat(color: THREE.ColorRepresentation, roughness = 0.42): THREE.MeshStandardMaterial {
-  return new THREE.MeshStandardMaterial({ color, roughness, metalness: 0, emissive: 0x000000 });
+/** วัสดุเนื้อเยื่อ (ลวดลาย/ความเปียก/การยุบตัว ดู tissue.ts) — size = ขนาดอ้างอิงของลวดลาย (เมตร) */
+function organMat(color: THREE.ColorRepresentation, roughness: number | undefined, kind: TissueKind, size: number): THREE.MeshPhysicalMaterial {
+  return tissueMaterial({ color, ...(roughness !== undefined ? { roughness } : {}), metalness: 0, emissive: 0x000000 }, kind, size);
 }
 
 /** ตัวรับการคลิกที่ใหญ่กว่าวัตถุจริง (สำหรับหลอดเลือดเส้นเล็ก ๆ และจอทัช) */
@@ -60,7 +62,7 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
   ]);
   const colonR = (t: number) =>
     THREE.MathUtils.lerp(0.029, 0.024, smooth(0.35, 0.6, t)) * capEnds(t, 0.14, 0) * (1 + 0.07 * Math.sin(t * 56));
-  const colon = new THREE.Mesh(varTube(colonCurve, colonR, { tubular: 90, radial: 20 }), organMat(0xc8786c));
+  const colon = new THREE.Mesh(varTube(colonCurve, colonR, { tubular: 90, radial: 20 }), organMat(0xc8786c, undefined, 'bowel', 0.06));
   colon.userData.targetId = 'cecum';
   group.add(colon);
 
@@ -83,7 +85,7 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
   taeniaPts.unshift(appendixCurve.getPointAt(0.2).add(new THREE.Vector3(0, 0.004, 0)));
   const taenia = new THREE.Mesh(
     varTube(new THREE.CatmullRomCurve3(taeniaPts), () => 0.0022, { tubular: 60, radial: 6 }),
-    organMat(0xdc9f92, 0.5),
+    organMat(0xdc9f92, 0.5, 'tendon', 0.02),
   );
   taenia.userData.targetId = 'cecum';
   group.add(taenia);
@@ -96,15 +98,16 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
     P(-0.009, -0.013, 0.062),
     P(-0.026, -0.008, 0.07),
   ]);
-  const ileum = new THREE.Mesh(varTube(ileumCurve, () => 0.0115, { tubular: 50, radial: 16 }), organMat(0xd98b82));
+  const ileum = new THREE.Mesh(varTube(ileumCurve, () => 0.0115, { tubular: 70, radial: 18 }), organMat(0xd98b82, undefined, 'bowel', 0.03));
+  ileum.geometry.userData.arcLength = ileumCurve.getLength();
   ileum.userData.targetId = 'ileum';
   group.add(ileum);
 
   // ไส้ติ่งอักเสบ: บวมตรงกลางถึงปลาย สีแดง (เรืองแสงเป็นจังหวะ = ภาวะอักเสบ)
   const appendixRadius = (t: number) => THREE.MathUtils.lerp(0.0055, 0.0095, smooth(0.15, 0.6, t)) * capEnds(t, 0, 0.12);
-  const appendixMat = organMat(0xb8382e, 0.38);
+  const appendixMat = organMat(0xa8323a, 0.38, 'inflamed', 0.018);
   appendixMat.emissive.set(0xff2a12);
-  appendixMat.emissiveIntensity = 0.12;
+  appendixMat.emissiveIntensity = 0.06;
   const appendixBody = new THREE.Mesh(varTube(appendixCurve, appendixRadius, { t0: 0.24, t1: 1, tubular: 48 }), appendixMat);
   appendixBody.userData.targetId = 'appendix';
   const appendixStump = new THREE.Mesh(varTube(appendixCurve, appendixRadius, { t0: 0, t1: 0.25, tubular: 14 }), appendixMat);
@@ -131,7 +134,7 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
   };
   const meso = new THREE.Mesh(
     paramSurface(memPoint, 18, 8),
-    new THREE.MeshStandardMaterial({ color: 0xe3c068, roughness: 0.5, side: THREE.DoubleSide }),
+    tissueMaterial({ color: 0xe3c068, side: THREE.DoubleSide }, 'fat', 0.025),
   );
   meso.userData.targetId = 'mesoappendix';
   group.add(meso);
@@ -151,7 +154,7 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
     ap.push(v);
   }
   const arteryCurve = new THREE.CatmullRomCurve3(ap);
-  const artery = new THREE.Mesh(varTube(arteryCurve, () => 0.0017, { tubular: 30, radial: 8 }), organMat(0xc0283a, 0.35));
+  const artery = new THREE.Mesh(varTube(arteryCurve, () => 0.0017, { tubular: 30, radial: 8 }), organMat(0xc0283a, 0.35, 'vessel', 0.006));
   artery.userData.targetId = 'appendicular_artery';
   const arteryProxy = new THREE.Mesh(varTube(arteryCurve, () => 0.0055, { tubular: 20, radial: 8 }), proxyMat);
   arteryProxy.userData.targetId = 'appendicular_artery';
@@ -168,7 +171,8 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
     P(0.058, 0.012, 0.049),
     P(0.082, 0.02, 0.05),
   ]);
-  const loops = new THREE.Mesh(varTube(loopCurve, () => 0.0118, { tubular: 80, radial: 16 }), organMat(0xdb9188));
+  const loops = new THREE.Mesh(varTube(loopCurve, () => 0.0118, { tubular: 110, radial: 18 }), organMat(0xdb9188, undefined, 'bowel', 0.03));
+  loops.geometry.userData.arcLength = loopCurve.getLength();
   loops.userData.targetId = 'bowel_loops';
   group.add(loops);
 
@@ -183,7 +187,7 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
     new THREE.MeshStandardMaterial({ color: bloodColor, roughness: 0.15 }),
   );
   blob.scale.set(1, 0.35, 1);
-  const vessel = new THREE.Mesh(new THREE.SphereGeometry(0.0016, 8, 6), organMat(0x6e0b14, 0.2));
+  const vessel = new THREE.Mesh(new THREE.SphereGeometry(0.0016, 8, 6), organMat(0x6e0b14, 0.2, 'vessel', 0.004));
   vessel.position.y = 0.0012;
   bleeder.add(blob, vessel);
   bleeder.visible = false;
@@ -225,6 +229,15 @@ export function buildAnatomy(reducedGore: boolean): Anatomy {
     }
   });
   for (const p of Object.values(pools)) p.castShadow = false;
+
+  // พิกัดลวดลายเนื้อเยื่อของแต่ละชิ้น
+  group.updateMatrixWorld(true);
+  group.traverse((o) => {
+    const m = o as THREE.Mesh;
+    if (!m.isMesh || !(m.material as THREE.Material).userData?.tissue) return;
+    const box = new THREE.Box3().setFromObject(m);
+    bakeRest(m, box.getCenter(new THREE.Vector3()), longAxis(box));
+  });
 
   const anchors: Record<string, THREE.Vector3> = {
     cecum: colonCurve.getPointAt(0.28).add(new THREE.Vector3(0, 0.03, 0)),

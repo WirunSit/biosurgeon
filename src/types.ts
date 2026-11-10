@@ -266,6 +266,8 @@ export interface FieldObjectDef {
   hit?: number;
   /** ไม่ให้คลิก (ฉากหลัง) */
   noPick?: boolean;
+  /** ชนิดเนื้อเยื่อสำหรับลวดลาย/ความเปียก (ค่าเริ่มต้นเดาจาก id/model/label) */
+  tissue?: import('./procedural/tissue').TissueKind;
   /** วิธีตอบสนองเมื่อถู/ดูด: pool = ปริมาตรลดลง, fade = จางหายไป */
   scrub?: 'pool' | 'fade';
   /** ลากได้ (วัตถุเลื่อนตามเมาส์) */
@@ -282,6 +284,12 @@ export interface FieldObjectDef {
   axis?: 'x' | 'y' | 'z';
   parent?: string;
   model?: string;
+  /** วางโมเดลตามพิกัดจริง (ใช้กับ field.atlas) — คลิกที่ผิวโมเดลโดยตรง ไม่ใช้รูปทรงพื้นฐาน */
+  atlas?: boolean;
+  /** เลื่อนโมเดล atlas ชิ้นนี้ไปจากตำแหน่งจริง (เมตร พิกัดโมเดล) เช่น ไตที่ปลูกถ่ายไว้ในแอ่งอุ้งเชิงกราน */
+  atlasShift?: V3;
+  /** กรอบพิกัดของวัตถุนี้เอง (แทน field.atlas) — เช่น แบบจำลองสองชุดบนถาดเดียว มุมมองต่างกัน */
+  atlasFrame?: { origin: V3; depth: number; scale?: number; rot?: V3 };
   /** หมุนเฉพาะโมเดล (องศา) — โมเดลวางตามท่านอนหงาย: x = ซ้ายผู้ป่วย, y = ด้านหน้า, z = ทางเท้า */
   modelRot?: V3;
   /** เป็นแอ่งเลือด: จะขยายเมื่อมีเลือดออก */
@@ -321,6 +329,12 @@ export interface FieldDef {
   drapeColor?: string;
   /** แผ่นฝึกกรีด-เย็บ (ด่าน 0) ไม่มีผ้าคลุมผู้ป่วย */
   practicePad?: boolean;
+  /**
+   * วางโมเดล BodyParts3D ตามพิกัดจริงของร่างกาย (วัตถุที่มี "atlas": true) — ทุกชิ้นใช้สเกลและจุดอ้างอิงเดียวกัน
+   * อวัยวะจึงมีขนาด ตำแหน่ง และรอยต่อถูกต้องตามกายวิภาค
+   * origin = จุดในพิกัดโมเดล (เมตร: x ซ้ายผู้ป่วย, y ด้านหน้า, z ทางเท้า) ที่จะอยู่ใต้กึ่งกลางหน้าต่าง ลึก depth จากผิว
+   */
+  atlas?: { origin: V3; depth: number; scale?: number; /** หมุนทั้งชุดรอบ origin (องศา, ลำดับ XYZ) เช่น [90,0,0] = มองสมองจากด้านบนศีรษะ */ rot?: V3 };
 }
 
 export interface CaseDef {

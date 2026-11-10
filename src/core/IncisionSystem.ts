@@ -27,13 +27,12 @@ uniform float uEdgeW;
 uniform float uShape;
 uniform float uNoise;
 varying vec2 vLocal;
-float bsHash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
-float bsNoise(vec2 p) {
-  vec2 i = floor(p);
-  vec2 f = fract(p);
-  f = f * f * (3.0 - 2.0 * f);
-  return mix(mix(bsHash(i), bsHash(i + vec2(1.0, 0.0)), f.x),
-             mix(bsHash(i + vec2(0.0, 1.0)), bsHash(i + vec2(1.0, 1.0)), f.x), f.y);
+// ขอบช่องเปิดขรุขระ: ฟังก์ชันเดียวกับ edgeNoise() ใน JS เพื่อให้ผนังรอยตัดตรงกับขอบพอดี
+float bsEdgeNoise(float x, float f) {
+  return 0.5 + 0.5 * (0.55 * sin(x * f * 0.9 + 1.7) + 0.3 * sin(x * f * 2.3 + 0.4) + 0.15 * sin(x * f * 3.7 + 2.9));
+}
+float bsRingNoise(float a) {
+  return 0.5 + 0.5 * (0.55 * sin(a * 3.0 + 1.7) + 0.3 * sin(a * 7.0 + 0.4) + 0.15 * sin(a * 13.0 + 2.9));
 }
 `;
 
@@ -41,17 +40,22 @@ const FRAG_CLIP = /* glsl */ `
 float bsEdge = 0.0;
 if (uOpen > 0.0001) {
   float d;
-  float taper = 1.0;
+  float r;
   if (uShape > 0.5) {
-    d = length(vLocal - uA);
+    vec2 q = vLocal - uA;
+    d = length(q);
+    r = uOpen * (0.9 + 0.2 * bsRingNoise(atan(q.y, q.x)));
   } else {
     vec2 ab = uB - uA;
-    float t = clamp(dot(vLocal - uA, ab) / dot(ab, ab), 0.0, 1.0);
+    float len = length(ab);
+    vec2 D = ab / len;
+    vec2 N = vec2(D.y, -D.x);
+    float t = clamp(dot(vLocal - uA, D) / len, 0.0, 1.0);
     d = length(vLocal - (uA + ab * t));
     float k = 2.0 * t - 1.0;
-    taper = sqrt(max(0.0, 1.0 - k * k));
+    float side = dot(vLocal - uA, N) >= 0.0 ? 1.0 : -1.0;
+    r = uOpen * sqrt(max(0.0, 1.0 - k * k)) * (0.9 + 0.2 * bsEdgeNoise(t * len + side * 0.37, uNoise));
   }
-  float r = uOpen * taper * (0.9 + 0.2 * bsNoise(vLocal * uNoise));
   float inside = r - d;
   if (inside > 0.0) discard;
   bsEdge = 1.0 - smoothstep(0.0, uEdgeW, -inside);
@@ -95,6 +99,35 @@ export function makeOpeningMaterial(
       );
   };
   return { material, uniforms };
+}
+
+export function edgeNoise(x: number, f: number): number {
+  return 0.5 + 0.5 * (0.55 * Math.sin(x * f * 0.9 + 1.7) + 0.3 * Math.sin(x * f * 2.3 + 0.4) + 0.15 * Math.sin(x * f * 3.7 + 2.9));
+}
+
+export function ringNoise(a: number): number {
+  return 0.5 + 0.5 * (0.55 * Math.sin(a * 3 + 1.7) + 0.3 * Math.sin(a * 7 + 0.4) + 0.15 * Math.sin(a * 13 + 2.9));
+}
+
+/**
+ * จุดบนขอบช่องเปิด (พิกัดเทียบศูนย์กลางหน้าต่าง) ตามสูตรเดียวกับ shader
+ * s = 0–1 วนรอบขอบ (เลนส์: ด้านหนึ่ง t 0→1 แล้วอีกด้าน 1→0)
+ */
+export function openingEdge(s: number, a: THREE.Vector2, b: THREE.Vector2, open: number, shape: number, noiseF: number): { p: THREE.Vector2; x: number } {
+  if (shape === 1) {
+    const ang = s * Math.PI * 2 - Math.PI;
+    const r = open * (0.9 + 0.2 * ringNoise(ang));
+    return { p: new THREE.Vector2(a.x + Math.cos(ang) * r, a.y + Math.sin(ang) * r), x: ang * 0.02 };
+  }
+  const ab = b.clone().sub(a);
+  const len = ab.length();
+  const D = ab.clone().divideScalar(len);
+  const N = new THREE.Vector2(D.y, -D.x);
+  const side = s < 0.5 ? 1 : -1;
+  const t = s < 0.5 ? s * 2 : (1 - s) * 2;
+  const k = 2 * t - 1;
+  const r = open * Math.sqrt(Math.max(0, 1 - k * k)) * (0.9 + 0.2 * edgeNoise(t * len + side * 0.37, noiseF));
+  return { p: a.clone().addScaledVector(ab, t).addScaledVector(N, side * r), x: s < 0.5 ? t * len : 2 * len - t * len };
 }
 
 /** สูตรเดียวกับ shader (ไม่มี noise) ใช้ตรวจว่าจุดนั้น "เปิด" อยู่หรือไม่ — ค่าบวก = อยู่ในช่องเปิด */

@@ -268,8 +268,24 @@ p { margin: 0 0 0.6em; line-height: 1.55; }
 .msg.tone-good { background: rgba(14, 70, 40, 0.88); }
 .msg.old { opacity: 0.45; }
 .teach { position: absolute; left: 12px; top: 150px; width: min(300px, calc(100% - 384px)); background: rgba(255, 252, 240, 0.97); color: var(--ink); border-radius: 14px; padding: 12px 14px; box-shadow: var(--shadow); border-left: 5px solid #e0a526; animation: pop 0.2s; }
-.teach-head { display: flex; justify-content: space-between; gap: 8px; margin-bottom: 4px; }
+.teach-head { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; cursor: move; user-select: none; touch-action: none; }
+.teach-head b { flex: 1; }
 .teach-head span { font-size: 0.75rem; color: var(--muted); }
+.teach-head .btn.tiny { padding: 1px 8px; }
+.teach.min { padding: 6px 10px; }
+.teach.min p { display: none; }
+.teach.min .teach-head { margin-bottom: 0; }
+.hud.clean .hud-top, .hud.clean .hud-log, .hud.clean .teach, .hud.clean .monitor { display: none; }
+/* โหมดซ่อนข้อความ: ถาดเครื่องมือเหลือแค่ไอคอนแถวเดียวชิดขวา */
+.hud.clean .hud-right { width: auto; align-items: flex-end; }
+.hud.clean .tray { grid-template-columns: 1fr; padding: 5px; gap: 4px; }
+.hud.clean .tool { padding: 4px; min-height: 0; }
+.hud.clean .tool .nm, .hud.clean .tool kbd { display: none; }
+/* ซูมเข้าใกล้: แผงข้อมูลจาง ไม่บังอวัยวะ (ชี้เมาส์เพื่ออ่าน) */
+.hud .hud-log, .hud .teach, .hud .step-card, .hud .tray, .hud .monitor { transition: opacity 0.25s; }
+.hud.zoomed .hud-log, .hud.zoomed .teach:not(:hover), .hud.zoomed .step-card:not(:hover), .hud.zoomed .tray:not(:hover), .hud.zoomed .monitor:not(:hover) { opacity: 0.3; }
+.pan-pad { display: inline-flex; gap: 2px; }
+.pan-pad .btn { min-width: 30px; padding-left: 6px; padding-right: 6px; touch-action: none; }
 .teach p { font-size: 0.9rem; }
 .hud-bar { position: absolute; left: 12px; right: 12px; bottom: 12px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap; }
 .hud-bar .btn { background: var(--hud); color: var(--hud-ink); border-color: rgba(255, 255, 255, 0.18); }

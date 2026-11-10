@@ -1,9 +1,9 @@
 // แปลงโมเดลอวัยวะจาก BodyParts3D (.stl, หน่วย มม.) เป็น .glb ขนาดเล็กสำหรับเกม — ไม่ต้องใช้ Blender
 //
-// ใช้: node tools/bp3d-to-glb.mjs <โฟลเดอร์ STL> [โฟลเดอร์ปลายทาง]
-// รายการโมเดลอยู่ใน tools/bp3d-models.json: { "ชื่อไฟล์.glb": { "fma": ["7197", ...], "tris": 6000 } }
+// ใช้: node tools/bp3d-to-glb.mjs <โฟลเดอร์ STL> [โฟลเดอร์ปลายทาง] [ชื่อไฟล์.glb ...เฉพาะบางไฟล์]
+// รายการโมเดลอยู่ใน tools/bp3d-models.json: { "ชื่อไฟล์.glb": { "fma": ["7197", ...], "tris": 6000, "clip"?: "left"|"right" } }
 //
-// ขั้นตอน: รวมหลายชิ้นเป็นชิ้นเดียว → เชื่อมจุดซ้ำ → ลดจำนวนสามเหลี่ยมแบบรวมจุดในกริด → ปรับผิวเรียบ (Taubin)
+// ขั้นตอน: รวมหลายชิ้นเป็นชิ้นเดียว → เชื่อมจุดซ้ำ → ลดจำนวนสามเหลี่ยมแบบ quadric (meshoptimizer) → ปรับผิวเรียบ (Taubin)
 // → หมุนแกนเป็นแกนของเกม → เขียน .glb (ตำแหน่ง + เวกเตอร์ปกติ + ดัชนี)
 //
 // แกน BodyParts3D: x = ซ้ายของผู้ป่วย, y = ด้านหลัง, z = ด้านศีรษะ
@@ -11,6 +11,7 @@
 // ข้อมูล: BodyParts3D, (c) The Database Center for Life Science, CC BY-SA 2.1 Japan
 import fs from 'node:fs';
 import path from 'node:path';
+import { MeshoptSimplifier } from 'meshoptimizer';
 
 const [srcDir, outDir = 'public/models/organs'] = process.argv.slice(2);
 if (!srcDir) {
@@ -57,72 +58,17 @@ function weld(pos) {
   return { v: new Float32Array(v), f };
 }
 
-/** ลดรายละเอียดด้วยการรวมจุดในช่องกริด (เร็ว ทนต่อโมเดลที่ไม่ปิดสนิท) */
-function cluster(mesh, cell) {
-  const { v, f } = mesh;
-  const cellOf = new Int32Array(v.length / 3);
-  const cells = new Map();
-  const sum = [];
-  for (let i = 0; i < v.length / 3; i++) {
-    const key = `${Math.floor(v[i * 3] / cell)},${Math.floor(v[i * 3 + 1] / cell)},${Math.floor(v[i * 3 + 2] / cell)}`;
-    let c = cells.get(key);
-    if (c === undefined) {
-      c = sum.length;
-      cells.set(key, c);
-      sum.push([0, 0, 0, 0]);
-    }
-    cellOf[i] = c;
-    const s = sum[c];
-    s[0] += v[i * 3];
-    s[1] += v[i * 3 + 1];
-    s[2] += v[i * 3 + 2];
-    s[3]++;
-  }
-  const nv = new Float32Array(sum.length * 3);
-  sum.forEach((s, i) => {
-    nv[i * 3] = s[0] / s[3];
-    nv[i * 3 + 1] = s[1] / s[3];
-    nv[i * 3 + 2] = s[2] / s[3];
-  });
-  const seen = new Set();
-  const nf = [];
-  for (let i = 0; i < f.length; i += 3) {
-    const a = cellOf[f[i]];
-    const b = cellOf[f[i + 1]];
-    const c = cellOf[f[i + 2]];
-    if (a === b || b === c || a === c) continue;
-    const key = [a, b, c].sort((x, y) => x - y).join(',');
-    if (seen.has(key)) continue;
-    seen.add(key);
-    nf.push(a, b, c);
-  }
-  return { v: nv, f: new Uint32Array(nf) };
-}
-
+/**
+ * ลดจำนวนสามเหลี่ยมแบบ quadric (meshoptimizer) — รักษารูปทรงและผิวที่ต่อกัน ไม่เกิดรู/สามเหลี่ยมกลับด้าน
+ * (วิธีเดิมที่รวมจุดในกริดทำให้โมเดลหัวใจ/ปอดมีรูทะลุและผิวยับ)
+ */
 function decimate(mesh, target) {
   if (mesh.f.length / 3 <= target) return mesh;
-  let lo = 0;
-  let hi = 0;
-  const v = mesh.v;
-  const min = [Infinity, Infinity, Infinity];
-  const max = [-Infinity, -Infinity, -Infinity];
-  for (let i = 0; i < v.length; i++) {
-    min[i % 3] = Math.min(min[i % 3], v[i]);
-    max[i % 3] = Math.max(max[i % 3], v[i]);
-  }
-  hi = Math.hypot(max[0] - min[0], max[1] - min[1], max[2] - min[2]) / 20;
-  lo = hi / 400;
-  let best = mesh;
-  for (let it = 0; it < 18; it++) {
-    const mid = Math.sqrt(lo * hi);
-    const m = cluster(mesh, mid);
-    if (m.f.length / 3 > target) lo = mid;
-    else {
-      hi = mid;
-      best = m;
-    }
-  }
-  return best;
+  const [idx] = MeshoptSimplifier.simplify(mesh.f, mesh.v, 3, target * 3, 0.05, ['LockBorder']);
+  let out = { v: mesh.v, f: idx };
+  // ยังเกินเป้า (ผิวไม่ปิดมาก ๆ) → ยอมให้ขอบขยับได้
+  if (out.f.length / 3 > target * 1.3) out = { v: mesh.v, f: MeshoptSimplifier.simplify(mesh.f, mesh.v, 3, target * 3, 0.08, [])[0] };
+  return out;
 }
 
 /** ตัดจุดที่ไม่มีสามเหลี่ยมใช้ทิ้ง (เหลือจากการรวมจุด) ไม่ให้ทำให้กล่องขอบเขตผิด */
@@ -253,15 +199,31 @@ function writeGLB(file, mesh, nrm) {
   fs.writeFileSync(file, Buffer.concat([head, ch(0x4e4f534a, json), ch(0x004e4942, bin)]));
 }
 
+await MeshoptSimplifier.ready;
+const only = process.argv.slice(4);
 for (const [name, spec] of Object.entries(list)) {
+  if (only.length && !only.includes(name)) continue;
   const arrays = spec.fma.map((id) => readSTL(path.join(srcDir, `FMA${id}.stl`)));
-  const all = new Float32Array(arrays.reduce((a, b) => a + b.length, 0));
+  let all = new Float32Array(arrays.reduce((a, b) => a + b.length, 0));
   let o = 0;
   for (const a of arrays) {
     all.set(a, o);
     o += a.length;
   }
   const raw = all.length / 9;
+  // แยกชิ้นซ้าย/ขวา: "clip": "left" | "right" เก็บเฉพาะสามเหลี่ยมที่จุดกึ่งกลางอยู่ฝั่งซ้าย (x > 0) หรือขวาของผู้ป่วย (x < 0)
+  if (spec.clip) {
+    const keep = [];
+    for (let i = 0; i < all.length; i += 9) {
+      const cx = (all[i] + all[i + 3] + all[i + 6]) / 3;
+      // หรือ { "axis": "z", "below"?: ค่า, "above"?: ค่า } = เก็บเฉพาะช่วงตามแกน (เช่น ตัดกระดูกเป็นสองท่อนที่รอยหัก)
+      const ax = typeof spec.clip === 'object' ? { x: 0, y: 1, z: 2 }[spec.clip.axis] : 0;
+      const c = (all[i + ax] + all[i + 3 + ax] + all[i + 6 + ax]) / 3;
+      const ok = typeof spec.clip === 'object' ? (spec.clip.below === undefined || c < spec.clip.below) && (spec.clip.above === undefined || c > spec.clip.above) : spec.clip === 'left' ? cx > 0 : cx < 0;
+      if (ok) for (let k = 0; k < 9; k++) keep.push(all[i + k]);
+    }
+    all = new Float32Array(keep);
+  }
   const mesh = smooth(compact(decimate(weld(all), spec.tris ?? 6000)), spec.smooth ?? 4);
   writeGLB(path.join(outDir, name), mesh, normals(mesh));
   const kb = Math.round(fs.statSync(path.join(outDir, name)).size / 1024);

@@ -59,8 +59,14 @@ export interface SurgeryScene {
   fieldPose(): { pos: THREE.Vector3; target: THREE.Vector3 };
   /** ชีพจรและการหายใจของผู้ป่วยตอนนี้ (live = ผู้ป่วยจริง ไม่ใช่หุ่นจำลอง/แผ่นฝึก) ใช้ขยับอวัยวะ */
   setPhysiology?(p: { hr: number; rr: number; live: boolean }): void;
-  /** เครื่องมือแตะวัตถุ (เนื้อเยื่อสั่นกระเพื่อมเล็กน้อย) */
-  touch?(targetId: string | null): void;
+  /** เครื่องมือแตะวัตถุที่จุด point (เนื้อเยื่อกระเพื่อมเป็นคลื่นจากจุดนั้น) */
+  touch?(targetId: string | null, point?: THREE.Vector3 | null): void;
+  /** คีบอวัยวะด้วยปากคีบ: อวัยวะติดปากคีบยกขึ้นมาตามมือ ปล่อยแล้ววางกลับ */
+  gripStart?(targetId: string, point: THREE.Vector3): boolean;
+  gripMove?(ray: THREE.Raycaster): void;
+  gripEnd?(): void;
+  /** จุดที่ปากคีบจับอยู่ (โลก) — ให้เครื่องมือแสดงตรงจุดที่จับ */
+  gripPoint?(): THREE.Vector3 | null;
   update(dt: number, t: number, camera: THREE.Camera): void;
   dispose(): void;
 }

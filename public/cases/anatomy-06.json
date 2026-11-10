@@ -37,8 +37,8 @@
     -0.55
    ],
    "window": {
-    "hw": 0.07,
-    "hd": 0.08
+    "hw": 0.1,
+    "hd": 0.11
    },
    "drapeColor": "#5b7fa6",
    "opening": "cranio",
@@ -47,7 +47,7 @@
      "circle": [
       0.0,
       0.0,
-      0.04
+      0.078
      ]
     }
    },
@@ -79,7 +79,7 @@
    ],
    "cavity": {
     "color": "#3f4d5a",
-    "depth": 0.05
+    "depth": 0.16
    },
    "objects": [
     {
@@ -87,89 +87,75 @@
      "label": "สมองใหญ่ซีกขวา",
      "shape": "ellipsoid",
      "at": [
-      -0.0165,
-      -0.0116,
-      0.03
+      -0.0343,
+      -0.0003,
+      0.0771
      ],
      "size": [
-      0.016,
-      0.011,
-      0.035
+      0.033,
+      0.0554,
+      0.0804
      ],
      "color": "#e8b7b0",
-     "rough": 0.75,
      "model": "models/organs/cerebrum_r.glb",
-     "modelRot": [
-      90,
-      0,
-      0
-     ]
+     "atlas": true,
+     "rough": 0.75
     },
     {
      "id": "cerebrum_L",
      "label": "สมองใหญ่ซีกซ้าย",
      "shape": "ellipsoid",
      "at": [
-      0.0165,
-      -0.0116,
-      0.03
+      0.033,
+      0.0001,
+      0.0772
      ],
      "size": [
-      0.016,
-      0.011,
-      0.035
+      0.0329,
+      0.0553,
+      0.0806
      ],
      "color": "#e8b7b0",
-     "rough": 0.75,
      "model": "models/organs/cerebrum_l.glb",
-     "modelRot": [
-      90,
-      0,
-      0
-     ]
+     "atlas": true,
+     "rough": 0.75
     },
     {
-     "id": "sag_cerebrum",
-     "label": "สมองใหญ่ (ซีรีบรัม)",
+     "id": "cerebellum",
+     "label": "สมองน้อย (ซีรีเบลลัม)",
      "shape": "ellipsoid",
      "at": [
-      -0.004,
-      -0.0221,
-      0.026
+      -0.0007,
+      -0.0415,
+      0.1321
      ],
      "size": [
-      0.042,
-      0.007,
-      0.028
+      0.0503,
+      0.0252,
+      0.0266
      ],
-     "color": "#e8b7b0",
-     "rough": 0.7,
-     "hidden": true
+     "color": "#d39c96",
+     "model": "models/organs/cerebellum.glb",
+     "atlas": true,
+     "rough": 0.8
     },
     {
      "id": "callosum",
      "label": "คอร์ปัสแคลโลซัม",
-     "shape": "tube",
-     "points": [
-      [
-       -0.02,
-       -0.0074,
-       0.0192
-      ],
-      [
-       -0.002,
-       -0.0154,
-       0.0192
-      ],
-      [
-       0.018,
-       -0.0074,
-       0.0192
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0008,
+      0.0009,
+      0.0849
      ],
-     "r": 0.0026,
+     "size": [
+      0.0248,
+      0.0184,
+      0.0433
+     ],
      "color": "#f6eee2",
-     "hit": 0.004,
+     "model": "models/organs/callosum.glb",
+     "atlas": true,
      "hidden": true
     },
     {
@@ -177,17 +163,18 @@
      "label": "ทาลามัส",
      "shape": "ellipsoid",
      "at": [
-      0.002,
-      0.0003,
-      0.02
+      -0.0007,
+      -0.0039,
+      0.0943
      ],
      "size": [
-      0.007,
-      0.002,
-      0.005
+      0.0226,
+      0.0112,
+      0.0173
      ],
      "color": "#c98a85",
-     "hit": 0.004,
+     "model": "models/organs/thalamus.glb",
+     "atlas": true,
      "hidden": true
     },
     {
@@ -195,70 +182,55 @@
      "label": "ไฮโพทาลามัส",
      "shape": "ellipsoid",
      "at": [
-      -0.009,
-      0.0083,
-      0.02
+      -0.0007,
+      0.0159,
+      0.1055
      ],
      "size": [
-      0.0045,
-      0.002,
-      0.004
+      0.0072,
+      0.0096,
+      0.0086
      ],
      "color": "#b06c74",
-     "hit": 0.004,
+     "model": "models/organs/hypothalamus.glb",
+     "atlas": true,
      "hidden": true
     },
     {
      "id": "pituitary",
      "label": "ต่อมใต้สมอง",
-     "shape": "sphere",
-     "r": 0.003,
+     "shape": "ellipsoid",
      "at": [
-      -0.012,
-      0.0185,
-      0.022
+      -0.0006,
+      0.0203,
+      0.1177
+     ],
+     "size": [
+      0.0058,
+      0.0062,
+      0.0045
      ],
      "color": "#d4a46a",
-     "hit": 0.004,
-     "hidden": true
-    },
-    {
-     "id": "stalk",
-     "shape": "tube",
-     "points": [
-      [
-       -0.01,
-       0.0113,
-       0.02
-      ],
-      [
-       -0.012,
-       0.0169,
-       0.021
-      ]
-     ],
-     "r": 0.001,
-     "color": "#c9946a",
-     "parent": "pituitary",
+     "model": "models/organs/pituitary.glb",
+     "atlas": true,
      "hidden": true
     },
     {
      "id": "midbrain",
-     "shape": "tube",
-     "points": [
-      [
-       0.004,
-       0.0049,
-       0.021
-      ],
-      [
-       0.007,
-       0.0139,
-       0.021
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0007,
+      -0.0027,
+      0.1103
      ],
-     "r": 0.0042,
+     "size": [
+      0.014,
+      0.0082,
+      0.014
+     ],
      "color": "#dcb4ac",
+     "model": "models/organs/midbrain.glb",
+     "atlas": true,
      "noPick": true,
      "hidden": true
     },
@@ -267,51 +239,38 @@
      "label": "พอนส์",
      "shape": "ellipsoid",
      "at": [
-      0.009,
-      0.0201,
-      0.023
+      -0.0007,
+      -0.0044,
+      0.1298
      ],
      "size": [
-      0.0065,
-      0.0045,
-      0.006
+      0.0198,
+      0.0136,
+      0.0164
      ],
      "color": "#dcb4ac",
-     "hit": 0.004,
-     "hidden": true,
-     "model": "models/organs/pons.glb"
+     "model": "models/organs/pons.glb",
+     "atlas": true,
+     "hidden": true
     },
     {
      "id": "medulla",
      "label": "เมดัลลาออบลองกาตา",
-     "shape": "tube",
-     "points": [
-      [
-       0.011,
-       0.0265,
-       0.022
-      ],
-      [
-       0.012,
-       0.0335,
-       0.022
-      ],
-      [
-       0.013,
-       0.0405,
-       0.022
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0007,
+      -0.0156,
+      0.1595
      ],
-     "r": 0.0034,
-     "color": "#d6aca4",
-     "hit": 0.0045,
-     "hidden": true,
-     "model": "models/organs/medulla.glb",
      "size": [
-      0.004,
-      0.004,
-      0.008
-     ]
+      0.0127,
+      0.0198,
+      0.0158
+     ],
+     "color": "#d6aca4",
+     "model": "models/organs/medulla.glb",
+     "atlas": true,
+     "hidden": true
     },
     {
      "id": "cord",
@@ -319,46 +278,40 @@
      "shape": "tube",
      "points": [
       [
-       0.013,
-       0.0425,
-       0.022
+       0.0,
+       -0.016,
+       0.141
       ],
       [
-       0.014,
-       0.0535,
-       0.022
+       0.0,
+       -0.02,
+       0.165
       ],
       [
-       0.014,
-       0.0635,
-       0.022
+       0.0,
+       -0.024,
+       0.195
       ]
      ],
-     "r": 0.0028,
+     "r": 0.005,
      "color": "#efe2d0",
-     "hit": 0.0045,
+     "hit": 0.007,
      "hidden": true
-    },
-    {
-     "id": "cerebellum",
-     "label": "สมองน้อย (ซีรีเบลลัม)",
-     "shape": "ellipsoid",
-     "at": [
-      0.03,
-      0.0167,
-      0.024
-     ],
-     "size": [
-      0.014,
-      0.005,
-      0.011
-     ],
-     "color": "#d39c96",
-     "rough": 0.8,
-     "hidden": true,
-     "model": "models/organs/cerebellum.glb"
     }
-   ]
+   ],
+   "atlas": {
+    "origin": [
+     0.0,
+     0.094,
+     -1.633
+    ],
+    "depth": 0.022,
+    "rot": [
+     90,
+     0,
+     0
+    ]
+   }
   },
   "steps": [
    {
@@ -369,7 +322,7 @@
     "path": "cranio",
     "minAccuracy": 0.4,
     "onSuccess": [
-     "open:skin:0.046",
+     "open:skin:0.084",
      "label:bone"
     ]
    },
@@ -383,7 +336,7 @@
     "minAccuracy": 0.4,
     "onSuccess": [
      "trail",
-     "open:bone:0.044",
+     "open:bone:0.082",
      "label:dura"
     ],
     "learn": "กะโหลกศีรษะประกอบด้วยกระดูกแผ่นหลายชิ้นเชื่อมกันด้วยรอยต่อ ทำหน้าที่เป็นกล่องแข็งปกป้องสมอง"
@@ -395,7 +348,7 @@
     "action": "click",
     "target": "dura",
     "onSuccess": [
-     "open:dura:0.042"
+     "open:dura:0.08"
     ],
     "learn": "เยื่อหุ้มสมองมี 3 ชั้น: ดูรา (นอก หนาเหนียว) อะแรคนอยด์ (กลาง) และเพีย (ใน แนบสมอง) ระหว่างชั้นกลางกับชั้นในมีน้ำหล่อสมองไขสันหลังรองรับแรงกระแทก"
    },
@@ -437,21 +390,18 @@
      "hide:bone",
      "hide:dura",
      "hide:cerebrum_R",
-     "hide:cerebrum_L",
-     "show:sag_cerebrum",
+     "spin:z:-90:0.08",
      "show:callosum",
      "show:thalamus",
      "show:hypothalamus",
      "show:pituitary",
-     "show:stalk",
      "show:midbrain",
      "show:pons",
      "show:medulla",
      "show:cord",
-     "show:cerebellum",
-     "label:sag_cerebrum"
+     "label:cerebrum_L"
     ],
-    "learn": "ภาพผ่าครึ่งแนวกลาง (sagittal) วางให้ด้านหน้าศีรษะอยู่ทางซ้าย ด้านบนอยู่ด้านบน — เห็นโครงสร้างที่ซ่อนอยู่ใต้สมองใหญ่"
+    "learn": "ภาพผ่าครึ่งแนวกลาง (sagittal) ของสมองจริงขนาดเท่าจริง: ด้านหน้าศีรษะอยู่ด้านล่างของจอ ด้านบนศีรษะอยู่ทางขวา — เห็นผิวด้านในของสมองซีกซ้ายและโครงสร้างที่ซ่อนอยู่ใต้สมองใหญ่ (หมุน/ซูมดูได้)"
    },
    {
     "id": "callosum",

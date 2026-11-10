@@ -3,16 +3,8 @@ import json, sys, glob, os
 CASES = r"D:\Dr.Biology\biosurgeon\public\cases"
 M = "models/organs/"
 MAP = {
- "anatomy-01": {"liver": "liver", "gallbladder": "gallbladder", "stomach": "stomach", "spleen": "spleen",
-                "pancreas": ("pancreas", [0.03, 0.007, 0.01]), "duodenum": ("duodenum", [0.014, 0.006, 0.016]), "colon": ("colon", [0.046, 0.01, 0.034])},
- "anatomy-02": {"heart": "heart"},  # กลีบปอด/หลอดลม: ใช้รูปทรงพื้นฐาน (โมเดลกลีบที่ย่อแยกกันไม่ต่อกันเป็นปอดเดียว)
- "anatomy-03": {"lung_R": "lung_r", "lung_L": "lung_l", "heart": "heart"},
- "anatomy-04": {"thymus": "thymus", "heart": "heart", "stomach": "stomach", "spleen": "spleen"},
- "anatomy-05": {"kidney_R": "kidney_r", "kidney_L": "kidney_l", "adrenal_R": "adrenal_r", "adrenal_L": "adrenal_l", "bladder": "bladder"},
- "anatomy-06": {"cerebrum_R": "cerebrum_r", "cerebrum_L": "cerebrum_l", "cerebellum": "cerebellum", "pons": "pons", "medulla": ("medulla", [0.004, 0.004, 0.008])},
- "anatomy-07": {"biceps": "biceps_r", "triceps": "triceps_r"},
- "anatomy-08": {"liver": "liver", "stomach": "stomach", "pancreas": ("pancreas", [0.032, 0.007, 0.01]), "kidney_R": "kidney_r", "kidney_L": "kidney_l", "adrenal_R": "adrenal_r", "adrenal_L": "adrenal_l"},
- "anatomy-09": {"bladder": "bladder", "prostate": "prostate", "vesicle": "seminal_vesicle"},
+ # anatomy-01 วางโมเดลตามพิกัดจริง (atlas_obj ใน lab1.py) — ไม่ต้องใส่ที่นี่
+ # anatomy-02..09: วางโมเดลตามพิกัดจริง (atlas_obj) ใน lab2/4/6/8/9.py
  "digestive-02": {"liver": "liver", "gallbladder": "gallbladder"},
  "digestive-03": {"liver": "liver", "stomach": "stomach", "duodenum": ("duodenum", [0.014, 0.006, 0.016])},
  "immune-02": {"spleen": "spleen", "stomach": "stomach", "liver": "liver"},
@@ -33,9 +25,6 @@ for cid, mp in MAP.items():
         o = objs[oid]
         o["model"] = M + name + ".glb"
         if size: o["size"] = size
-    if cid == "anatomy-04": objs["thymus_L"]["hidden"] = True
-    if cid == "anatomy-06":
-        for k in ("cerebrum_R", "cerebrum_L"): objs[k]["modelRot"] = [90, 0, 0]  # มองจากด้านบนศีรษะ
     with open(p, "w", encoding="utf-8") as f:
         json.dump(c, f, ensure_ascii=False, indent=1)
     print(cid, len(mp))

@@ -37,8 +37,8 @@
     -0.05
    ],
    "window": {
-    "hw": 0.09,
-    "hd": 0.1
+    "hw": 0.15,
+    "hd": 0.2
    },
    "drapeColor": "#5b7fa6",
    "opening": "incision",
@@ -47,11 +47,11 @@
      "points": [
       [
        0.0,
-       -0.085
+       -0.17
       ],
       [
        0.0,
-       0.085
+       0.17
       ]
      ]
     }
@@ -92,7 +92,7 @@
    ],
    "cavity": {
     "color": "#6e3a34",
-    "depth": 0.07
+    "depth": 0.17
    },
    "objects": [
     {
@@ -100,297 +100,235 @@
      "label": "ตับ",
      "shape": "ellipsoid",
      "at": [
-      -0.03,
-      -0.0624,
-      0.045
+      -0.0184,
+      -0.0923,
+      0.1226
      ],
      "size": [
-      0.04,
-      0.013,
-      0.025
-     ],
-     "rot": [
-      0,
-      -12,
-      0
+      0.0995,
+      0.075,
+      0.087
      ],
      "color": "#8b3a2e",
-     "rough": 0.35,
-     "model": "models/organs/liver.glb"
+     "model": "models/organs/liver.glb",
+     "atlas": true,
+     "rough": 0.35
     },
     {
      "id": "gallbladder",
      "label": "ถุงน้ำดี",
      "shape": "ellipsoid",
      "at": [
-      -0.032,
-      -0.031,
-      0.044
+      -0.0549,
+      -0.0567,
+      0.0889
      ],
      "size": [
-      0.007,
-      0.006,
-      0.012
-     ],
-     "rot": [
-      0,
-      20,
-      0
+      0.018,
+      0.0217,
+      0.023
      ],
      "color": "#5f8f4e",
-     "rough": 0.3,
-     "model": "models/organs/gallbladder.glb"
+     "model": "models/organs/gallbladder.glb",
+     "atlas": true,
+     "rough": 0.3
     },
     {
      "id": "stomach",
      "label": "กระเพาะอาหาร",
      "shape": "ellipsoid",
      "at": [
-      0.022,
-      -0.0486,
-      0.043
+      0.0433,
+      -0.0968,
+      0.1021
      ],
      "size": [
-      0.024,
-      0.012,
-      0.017
-     ],
-     "rot": [
-      0,
-      -25,
-      0
+      0.0709,
+      0.0576,
+      0.0602
      ],
      "color": "#d9928a",
+     "model": "models/organs/stomach.glb",
+     "atlas": true,
      "rough": 0.45,
-     "model": "models/organs/stomach.glb"
+     "draggable": true
     },
     {
-     "id": "pancreas",
-     "label": "ตับอ่อน",
-     "shape": "tube",
-     "points": [
-      [
-       -0.012,
-       -0.05,
-       0.062
-      ],
-      [
-       0.01,
-       -0.0532,
-       0.06
-      ],
-      [
-       0.03,
-       -0.0584,
-       0.058
-      ],
-      [
-       0.046,
-       -0.0641,
-       0.057
-      ]
+     "id": "esophagus",
+     "label": "หลอดอาหาร",
+     "shape": "ellipsoid",
+     "at": [
+      0.0028,
+      -0.2666,
+      0.1542
      ],
-     "radii": [
-      0.007,
-      0.0055,
-      0.005,
-      0.0045
-     ],
-     "caps": true,
-     "color": "#e3c48e",
-     "rough": 0.55,
-     "hit": 0.007,
-     "model": "models/organs/pancreas.glb",
      "size": [
-      0.03,
-      0.007,
-      0.01
-     ]
+      0.013,
+      0.0224,
+      0.1253
+     ],
+     "color": "#c98a80",
+     "model": "models/organs/esophagus.glb",
+     "atlas": true
     },
     {
      "id": "duodenum",
      "label": "ลำไส้เล็กส่วนต้น (ดูโอดีนัม)",
-     "shape": "tube",
-     "points": [
-      [
-       0.022,
-       -0.0381,
-       0.052
-      ],
-      [
-       0.008,
-       -0.0329,
-       0.054
-      ],
-      [
-       0.0,
-       -0.0417,
-       0.056
-      ],
-      [
-       0.004,
-       -0.0524,
-       0.058
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0043,
+      -0.0273,
+      0.1076
      ],
-     "r": 0.0055,
-     "color": "#d98b82",
-     "hit": 0.006,
-     "model": "models/organs/duodenum.glb",
      "size": [
-      0.014,
-      0.006,
-      0.016
-     ]
+      0.0598,
+      0.0278,
+      0.0488
+     ],
+     "color": "#d98b82",
+     "model": "models/organs/duodenum.glb",
+     "atlas": true
+    },
+    {
+     "id": "pancreas",
+     "label": "ตับอ่อน",
+     "shape": "ellipsoid",
+     "at": [
+      0.0041,
+      -0.033,
+      0.1104
+     ],
+     "size": [
+      0.0566,
+      0.0195,
+      0.0361
+     ],
+     "color": "#e3c48e",
+     "model": "models/organs/pancreas.glb",
+     "atlas": true,
+     "rough": 0.55
     },
     {
      "id": "spleen",
      "label": "ม้าม",
      "shape": "ellipsoid",
      "at": [
-      0.043,
-      -0.0593,
-      0.05
+      0.0795,
+      -0.088,
+      0.1421
      ],
      "size": [
-      0.01,
-      0.009,
-      0.017
-     ],
-     "rot": [
-      0,
-      30,
-      0
+      0.0369,
+      0.0496,
+      0.0419
      ],
      "color": "#6e2636",
-     "rough": 0.35,
-     "model": "models/organs/spleen.glb"
+     "model": "models/organs/spleen.glb",
+     "atlas": true,
+     "rough": 0.35
     },
     {
      "id": "small_int",
      "label": "ลำไส้เล็ก",
-     "shape": "tube",
-     "points": [
-      [
-       -0.022,
-       -0.011,
-       0.044
-      ],
-      [
-       0.022,
-       -0.0094,
-       0.045
-      ],
-      [
-       0.024,
-       0.0006,
-       0.045
-      ],
-      [
-       -0.02,
-       0.003,
-       0.044
-      ],
-      [
-       -0.022,
-       0.0126,
-       0.045
-      ],
-      [
-       0.022,
-       0.0146,
-       0.045
-      ],
-      [
-       0.02,
-       0.0242,
-       0.046
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      0.0083,
+      0.036,
+      0.0973
      ],
-     "r": 0.0062,
+     "size": [
+      0.0945,
+      0.0409,
+      0.0674
+     ],
      "color": "#e3a092",
+     "model": "models/organs/jejunum.glb",
+     "atlas": true,
+     "rough": 0.4
+    },
+    {
+     "id": "ileum",
+     "shape": "ellipsoid",
+     "at": [
+      0.0032,
+      0.1283,
+      0.1001
+     ],
+     "size": [
+      0.1008,
+      0.0261,
+      0.0712
+     ],
+     "color": "#dc9a8c",
+     "model": "models/organs/ileum.glb",
+     "atlas": true,
      "rough": 0.4,
-     "hit": 0.007
+     "parent": "small_int"
     },
     {
      "id": "colon",
      "label": "ลำไส้ใหญ่",
-     "shape": "tube",
-     "points": [
-      [
-       -0.042,
-       0.0326,
-       0.05
-      ],
-      [
-       -0.044,
-       0.0006,
-       0.05
-      ],
-      [
-       -0.04,
-       -0.0254,
-       0.05
-      ],
-      [
-       0.0,
-       -0.027,
-       0.049
-      ],
-      [
-       0.04,
-       -0.0274,
-       0.05
-      ],
-      [
-       0.044,
-       0.0006,
-       0.05
-      ],
-      [
-       0.04,
-       0.0343,
-       0.051
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      0.002,
+      0.0585,
+      0.1149
      ],
-     "r": 0.0075,
-     "color": "#c9907a",
-     "rough": 0.5,
-     "hit": 0.008,
-     "model": "models/organs/colon.glb",
      "size": [
-      0.046,
-      0.01,
-      0.034
-     ]
+      0.1091,
+      0.0635,
+      0.1205
+     ],
+     "color": "#c9907a",
+     "model": "models/organs/colon.glb",
+     "atlas": true,
+     "rough": 0.5
     },
     {
      "id": "appendix",
      "label": "ไส้ติ่ง",
-     "shape": "tube",
-     "points": [
-      [
-       -0.04,
-       0.0379,
-       0.052
-      ],
-      [
-       -0.034,
-       0.0439,
-       0.052
-      ],
-      [
-       -0.028,
-       0.0455,
-       0.053
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0597,
+      0.1267,
+      0.109
      ],
-     "r": 0.0022,
-     "caps": true,
+     "size": [
+      0.0243,
+      0.0056,
+      0.0084
+     ],
      "color": "#d68f80",
-     "hit": 0.005
+     "model": "models/organs/appendix.glb",
+     "atlas": true
+    },
+    {
+     "id": "rectum",
+     "label": "ไส้ตรง",
+     "shape": "ellipsoid",
+     "at": [
+      -0.0008,
+      0.203,
+      0.1845
+     ],
+     "size": [
+      0.0215,
+      0.0305,
+      0.0661
+     ],
+     "color": "#c58a7a",
+     "model": "models/organs/rectum.glb",
+     "atlas": true
     }
-   ]
+   ],
+   "atlas": {
+    "origin": [
+     0.0,
+     0.2,
+     -1.025
+    ],
+    "depth": 0.04
+   }
   },
   "steps": [
    {
@@ -413,9 +351,9 @@
     "target": "incision",
     "holdSec": 1.2,
     "onSuccess": [
-     "open:skin:0.07",
-     "open:fat:0.067",
-     "open:muscle:0.064",
+     "open:skin:0.115",
+     "open:fat:0.112",
+     "open:muscle:0.108",
      "label:peritoneum"
     ]
    },
@@ -426,7 +364,7 @@
     "action": "click",
     "target": "peritoneum",
     "onSuccess": [
-     "open:peritoneum:0.06"
+     "open:peritoneum:0.104"
     ],
     "learn": "เยื่อบุช่องท้องเป็นเยื่อบางลื่นที่บุผนังช่องท้องและห่อหุ้มอวัยวะ ช่วยให้อวัยวะเลื่อนผ่านกันได้ขณะลำไส้เคลื่อนไหว"
    },

@@ -225,8 +225,21 @@ function performStep(step: StepDef): void {
       const p = anchor(step.target!);
       if (!p) return;
       const dist = (step.minDrag ?? 0.02 * unit) * 1.6;
-      const a = toS(0, 0);
-      const b = toS(dist, -dist * 0.3);
+      let a = toS(0, 0);
+      let b = toS(dist, -dist * 0.3);
+      // คำนวณระยะลากบนระนาบเดียวกับที่ฉากใช้วัดการลาก (ผิวหนัง หรือระนาบใต้กล้องเมื่อมองผ่านกล้องส่อง) ที่ตำแหน่งวัตถุ
+      const sc = bs().scene;
+      const cam = bs().sm.camera;
+      const w = sc.anchorOf?.(step.target!);
+      if (w && sc.Y0 !== undefined && sc.def?.atlas) {
+        const y = cam.position.y > sc.Y0 ? sc.Y0 : cam.position.y - 0.05 * unit;
+        const dir = w.clone().sub(cam.position).normalize();
+        if (Math.abs(dir.y) > 1e-4) {
+          const P0 = cam.position.clone().addScaledVector(dir, (y - cam.position.y) / dir.y);
+          a = bs().worldToScreen(P0);
+          b = bs().worldToScreen(P0.clone().add(new (bs().THREE.Vector3)(dist, 0, -dist * 0.3)));
+        }
+      }
       const dx = b.x - a.x;
       const dy = b.y - a.y;
       const pts: P[] = [];
@@ -238,8 +251,13 @@ function performStep(step: StepDef): void {
       const p = anchor(step.target!);
       if (!p) return;
       const du = ((step.angle ?? 90) / 120) * 0.03 * unit;
-      const a = toS(0, 0);
-      const b = toS(du, 0);
+      // คำนวณระยะลากบนจอที่ตำแหน่งของวัตถุจริง (วัตถุที่อยู่ไกลจากกลางแผลมีสเกลบนจอต่างไป)
+      const w = bs().scene.anchorOf?.(step.target!);
+      const W = bs().scene.W;
+      const u0 = w && W ? w.x - W.cx : 0;
+      const v0 = w && W ? w.z - W.cz : 0;
+      const a = toS(u0, v0);
+      const b = toS(u0 + du, v0);
       const pts: P[] = [];
       for (let i = 0; i <= 12; i++) pts.push({ x: p.x + ((b.x - a.x) * i) / 12, y: p.y + ((b.y - a.y) * i) / 12 });
       dragPath(pts);

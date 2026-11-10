@@ -17,6 +17,8 @@ import {
 import { buildAnatomy, type Anatomy } from '../procedural/anatomy';
 import { buildTool } from '../procedural/tools';
 import { varTube } from '../procedural/geom';
+import { bakeRest, tissueMaterial, TissueDyn, type TissueUniforms } from '../procedural/tissue';
+import { CutWall, wallKindOf } from '../procedural/cutwall';
 
 /** ทิศตามแนวแผล (ไปทางเท้าและเข้าหาแนวกลางลำตัว) และทิศตั้งฉาก */
 const D = new THREE.Vector2(Math.SQRT1_2, Math.SQRT1_2);
@@ -121,6 +123,10 @@ export class AbdomenRLQScene implements SurgeryScene {
   private closeFrom = new Map<string, number>();
   /** ขอบแผลที่ถูกดึงชั่วคราวระหว่างลากตะขอถ่าง */
   private stretch = 0;
+  /** การยุบ/ยืด/กระเพื่อมเฉพาะจุดของเนื้อเยื่อแต่ละเป้าหมาย */
+  private dyns = new Map<string, TissueDyn>();
+  private walls: CutWall[] = [];
+  private lastTouch: { id: string; point: THREE.Vector3 } | null = null;
 
   constructor(private reducedGore: boolean) {
     this.root.name = 'abdomen-rlq';
@@ -145,16 +151,26 @@ export class AbdomenRLQScene implements SurgeryScene {
       peritoneum: { color: 0xe2bcb1, roughness: 0.22 },
     };
     const edges: Record<string, number> = { skin: 0xa8473f, fat: 0xd5a23f, muscle: 0x74201c, peritoneum: 0xc4958c };
-    for (const d of LAYER_DEFS) {
+    LAYER_DEFS.forEach((d, i) => {
+      if (d.id === 'peritoneum') Object.assign(params[d.id], { transparent: true, opacity: 0.55 });
       const L = buildLayer(d.id, d.name, d.depth, params[d.id], edges[d.id], A, B);
       this.layers.push(L);
       this.layerMap.set(d.id, L);
       this.root.add(L.mesh);
       this.pickables.push(L.mesh);
-    }
+      // ผนังรอยตัด (ความหนาของแต่ละชั้นตรงขอบแผล)
+      const tex = d.id === 'skin' ? 'skin' : d.id === 'peritoneum' ? 'membrane' : d.id;
+      const wall = new CutWall(L, A, B, 0, WIN, LAYER_DEFS[i + 1]?.depth ?? d.depth + 0.002, wallKindOf(tex, i), 1, reducedGore);
+      this.walls.push(wall);
+      this.root.add(wall.mesh);
+    });
 
     const cavity = buildCavity();
     cavity.userData.targetId = 'cavity';
+    (cavity.material as THREE.Material).dispose();
+    cavity.material = tissueMaterial({ color: 0x6e2a28, side: THREE.BackSide }, 'cavity', 0.07);
+    cavity.updateMatrixWorld(true);
+    bakeRest(cavity, cavity.position.clone(), new THREE.Vector3(0, 0, 1));
     this.root.add(cavity);
     this.pickables.push(cavity);
 
@@ -177,6 +193,23 @@ export class AbdomenRLQScene implements SurgeryScene {
     );
     this.loopsHome.copy(a.loops.position);
     this.appendixHome.copy(a.appendixBody.position);
+    const dyn = (id: string, mesh: THREE.Mesh, size: number) => {
+      const u = (mesh.material as THREE.Material).userData.tissue as TissueUniforms;
+      const d = new TissueDyn(u, size);
+      this.dyns.set(id, d);
+      return d;
+    };
+    dyn('cecum', a.colon, 0.06);
+    dyn('appendix', a.appendixBody, 0.018).grabR = 0.02;
+    dyn('appendicular_artery', a.artery, 0.006);
+    // ขดลำไส้เล็กบีบตัวเป็นคลื่นไปตามความยาว (เมื่อผู้ป่วยมีชีวิต) และเมื่อคีบจะยกขึ้นมาทั้งช่วง
+    for (const [id, mesh] of [['bowel_loops', a.loops], ['ileum', a.ileum]] as const) {
+      const d = dyn(id, mesh, 0.03);
+      d.grabR = 0.035;
+      d.waveAmp = 0.0015;
+      d.waveLen = 0.08;
+      d.waveSpeed = 1.4;
+    }
 
     // เส้นประนำแนวกรีด
     const gpts: THREE.Vector3[] = [];
@@ -416,10 +449,19 @@ export class AbdomenRLQScene implements SurgeryScene {
       const d = delta.clone().clampLength(0, 0.05);
       a.appendixBody.position.set(this.appendixHome.x + d.x, this.appendixHome.y + 0.004 + progress * 0.02, this.appendixHome.z + d.y);
     }
+    // ตรงที่ปากคีบจับถูกยกนำขึ้นมาก่อน ส่วนที่เหลือห้อยตาม (ไม่ใช่เลื่อนทั้งก้อนแข็ง ๆ) — จุดคีบเลื่อนไปกับชิ้นที่ถูกลาก
+    const dyn = this.dyns.get(target);
+    if (!dyn) return;
+    const grip = this.lastTouch?.id === target ? this.lastTouch.point.clone() : this.anchor(target);
+    if (!grip) return;
+    if (target === 'bowel_loops') grip.add(a.loops.position).sub(this.loopsHome);
+    if (target === 'appendix') grip.add(a.appendixBody.position).sub(this.appendixHome);
+    dyn.grab(grip, new THREE.Vector3(0, (0.3 + progress) * 0.005, 0));
   }
 
   dragEnd(target: string, success: boolean): void {
     this.stretch = 0;
+    this.dyns.get(target)?.grab(null);
     if (success) return;
     const a = this.anat;
     if (target === 'bowel_loops' && !this.loopsAside) this.tweenPos(a.loops, this.loopsHome.clone(), 0.3);
@@ -495,8 +537,22 @@ export class AbdomenRLQScene implements SurgeryScene {
   // ---------- เอฟเฟกต์ ----------
 
   holdFx(target: string, active: boolean): void {
-    void target;
     this.smokeOn = active;
+    const d = this.dyns.get(target);
+    if (!d) return;
+    const p = active ? (this.lastTouch?.id === target ? this.lastTouch.point : this.anchor(target)) : null;
+    d.press(p, new THREE.Vector3(0, -1, 0));
+  }
+
+  /** เครื่องมือแตะเนื้อเยื่อ: คลื่นกระเพื่อมวิ่งออกจากจุดที่แตะ */
+  touch(targetId: string | null, point?: THREE.Vector3 | null): void {
+    if (!targetId) return;
+    const id = targetId === 'appendix_base' ? 'appendix' : targetId;
+    const d = this.dyns.get(id);
+    const p = point ?? this.anchor(id);
+    if (!d || !p) return;
+    this.lastTouch = { id, point: p.clone() };
+    d.ripple(p);
   }
 
   effect(name: string): void {
@@ -691,10 +747,12 @@ export class AbdomenRLQScene implements SurgeryScene {
     this.breathPhase = (this.breathPhase + (dt * this.rr) / 60) % 1;
     const breath = this.live ? (1 - Math.cos(this.breathPhase * Math.PI * 2)) / 2 : 0;
     this.anat.group.position.set(0, 0.0003 * breath, 0.0008 * breath);
+    for (const d of this.dyns.values()) d.update(dt, t, this.live);
     for (const L of this.layers) {
       const goal = L.openTarget + (L.id === 'skin' ? this.stretch : 0);
       L.uniforms.uOpen.value += (goal - L.uniforms.uOpen.value) * Math.min(1, dt * 4.5);
     }
+    for (const w of this.walls) w.update();
     // ซ่อนไหมของชั้นที่อยู่ใต้ชั้นที่ปิดแล้ว
     for (const s of this.stitches.children) {
       const layer = s.userData.layer as string;
@@ -704,7 +762,7 @@ export class AbdomenRLQScene implements SurgeryScene {
     }
 
     const a = this.anat;
-    if (!this.ruptured && this.highlight !== 'appendix') a.appendixMat.emissiveIntensity = 0.1 + 0.07 * Math.sin(t * 2.6);
+    if (!this.ruptured && this.highlight !== 'appendix') a.appendixMat.emissiveIntensity = 0.05 + 0.04 * Math.sin(t * 2.6);
 
     // ไฮไลต์
     if (this.highlight) {

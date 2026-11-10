@@ -113,6 +113,8 @@ export async function runSurgery(opts: {
   let overWarned = false;
   let hintLevel = 0;
   let hit: PickResult = { targetId: null, point: null, uv: null };
+  let gripping = false;
+  const GRASP = new Set<ToolId>(['forceps', 'clamp']);
   const bleeds: Bleed[] = [];
   // จอเกือบจัตุรัสถอยกล้องออกเล็กน้อย ให้เห็นทั้งหน้าต่างผ่าตัดโดยไม่ชนถาดเครื่องมือ
   const aspect = window.innerWidth / window.innerHeight;
@@ -128,15 +130,51 @@ export async function runSurgery(opts: {
     return p;
   };
   let base = adjust(scene.fieldPose());
+  // มุมมองที่ผู้เล่น/ครูปรับเอง: หมุนรอบจุดที่มอง (yaw/pitch), เลื่อน (pan), ซูม — R = กลับมุมเดิม
+  let yaw = 0;
+  let pitch = 0;
+  const pan = new THREE.Vector3();
+  const ZOOM_MIN = 0.12;
+  const ZOOM_MAX = 1.6;
+  const resetView = () => {
+    yaw = 0;
+    pitch = 0;
+    pan.set(0, 0, 0);
+  };
   scene.onPose = (p) => {
     base = adjust({ pos: p.pos.clone(), target: p.target.clone() });
     zoom = 1;
+    resetView();
     void sm.flyTo(base, 1.2);
   };
 
+  const viewPose = () => {
+    const off = base.pos.clone().sub(base.target);
+    const sph = new THREE.Spherical().setFromVector3(off);
+    sph.theta += yaw;
+    // จำกัดมุมก้ม: ไม่มุดลงใต้ผิว และไม่ตั้งฉากพอดี (กล้องหมุนกลับหัว)
+    sph.phi = THREE.MathUtils.clamp(sph.phi + pitch, 0.05, 1.35);
+    sph.radius *= zoom;
+    const target = base.target.clone().add(pan);
+    return { pos: target.clone().add(new THREE.Vector3().setFromSpherical(sph)), target };
+  };
   const applyZoom = () => {
-    const pos = base.target.clone().add(base.pos.clone().sub(base.target).multiplyScalar(zoom));
-    sm.setPose({ pos, target: base.target });
+    sm.setPose(viewPose());
+    // ซูมเข้าใกล้: แผงข้อมูลจางลง (ชี้เมาส์ที่แผงเพื่ออ่าน) จะได้ไม่บังอวัยวะ
+    hud.setZoomed(zoom < 0.75);
+  };
+  /** ซูมเข้า/ออกตรงจุดที่ชี้ (จุดนั้นอยู่กับที่บนจอ) */
+  const zoomAt = (factor: number, toward: THREE.Vector3 | null) => {
+    const z = THREE.MathUtils.clamp(zoom * factor, ZOOM_MIN, ZOOM_MAX);
+    if (toward) {
+      const tgt = base.target.clone().add(pan);
+      pan.add(toward.clone().sub(tgt).multiplyScalar(1 - z / zoom));
+      // ไม่ให้เลื่อนออกนอกบริเวณแผลมากเกินไป
+      const lim = 0.25 * unit;
+      pan.set(THREE.MathUtils.clamp(pan.x, -lim, lim), THREE.MathUtils.clamp(pan.y, -lim, lim), THREE.MathUtils.clamp(pan.z, -lim, lim));
+    }
+    zoom = z;
+    applyZoom();
   };
 
   const pause = async <T,>(p: () => Promise<T>): Promise<T> => {
@@ -296,8 +334,7 @@ export async function runSurgery(opts: {
     sfx.enabled = on;
   };
   hud.onZoom = (dir) => {
-    zoom = THREE.MathUtils.clamp(zoom + dir * 0.12, 0.6, 1.4);
-    applyZoom();
+    zoomAt(dir > 0 ? 1.18 : 1 / 1.18, null);
   };
   hud.onHint = () => {
     const step = engine.current;
@@ -320,24 +357,82 @@ export async function runSurgery(opts: {
     if (paused) return;
     sfx.unlock();
     updateHit();
-    if (tools.held) scene.touch?.(hit.targetId);
+    if (tools.held) scene.touch?.(hit.targetId, hit.point);
     engine.pointerDown(hit, ray, tools.held);
+    // ปากคีบ/คีมจับอวัยวะ: อวัยวะติดเครื่องมือยกขึ้นมาตามมือ
+    gripping = !!(tools.held && GRASP.has(tools.held) && hit.targetId && hit.point && scene.gripStart?.(hit.targetId, hit.point));
   };
   input.onMove = () => {
     if (paused) return;
     updateHit();
     engine.pointerMove(hit, ray, tools.held, input.down);
+    if (gripping && input.down) scene.gripMove?.(ray);
   };
   input.onUp = () => {
     if (paused) return;
     updateHit();
     engine.pointerUp(hit, ray, tools.held);
+    if (gripping) scene.gripEnd?.();
+    gripping = false;
   };
   input.onCancel = () => holdTool(null);
-  input.onWheel = (dy) => hud.onZoom?.(dy > 0 ? 1 : -1);
+  input.onWheel = (dy) => {
+    if (paused) return;
+    ray.setFromCamera(input.ndc, sm.camera);
+    zoomAt(dy > 0 ? 1.15 : 1 / 1.15, scene.pick(ray).point);
+  };
+  input.onOrbit = (dx, dy) => {
+    if (paused) return;
+    yaw -= dx * 0.006;
+    pitch -= dy * 0.006;
+    const phi0 = new THREE.Spherical().setFromVector3(base.pos.clone().sub(base.target)).phi;
+    pitch = THREE.MathUtils.clamp(pitch, 0.05 - phi0, 1.35 - phi0);
+    applyZoom();
+  };
+  input.onPan = (dx, dy) => {
+    if (paused) return;
+    // เลื่อนตามระนาบจอ ความเร็วตามระยะกล้อง
+    const dist = sm.camera.position.distanceTo(sm.lookTarget);
+    const k = (dist * 2 * Math.tan(THREE.MathUtils.degToRad(sm.camera.fov / 2))) / window.innerHeight;
+    const right = new THREE.Vector3().setFromMatrixColumn(sm.camera.matrixWorld, 0);
+    const up = new THREE.Vector3().setFromMatrixColumn(sm.camera.matrixWorld, 1);
+    pan.addScaledVector(right, -dx * k).addScaledVector(up, dy * k);
+    const lim = 0.25 * unit;
+    pan.set(THREE.MathUtils.clamp(pan.x, -lim, lim), THREE.MathUtils.clamp(pan.y, -lim, lim), THREE.MathUtils.clamp(pan.z, -lim, lim));
+    applyZoom();
+  };
+  /** เลื่อนมุมมองบนระนาบพื้น ตามทิศของจอ (ขวา/ขึ้น = ห่างจากผู้ดู) — ระยะตามความไกลของกล้อง */
+  const panStep = (rx: number, fy: number) => {
+    if (paused) return;
+    const dist = sm.camera.position.distanceTo(sm.lookTarget);
+    const right = new THREE.Vector3().setFromMatrixColumn(sm.camera.matrixWorld, 0).setY(0).normalize();
+    const fwd = sm.lookTarget.clone().sub(sm.camera.position).setY(0).normalize();
+    pan.addScaledVector(right, rx * dist * 0.06).addScaledVector(fwd, fy * dist * 0.06);
+    const lim = 0.25 * unit;
+    pan.set(THREE.MathUtils.clamp(pan.x, -lim, lim), THREE.MathUtils.clamp(pan.y, -lim, lim), THREE.MathUtils.clamp(pan.z, -lim, lim));
+    applyZoom();
+  };
+  hud.onPanStep = panStep;
+  // ไม่ได้ถือเครื่องมือ: ลากคลิกซ้ายเพื่อเลื่อนมุมมอง
+  input.leftPans = () => !tools.held && !paused;
+  input.onPinch = (ratio) => {
+    if (!paused) zoomAt(1 / ratio, null);
+  };
+  hud.onResetView = () => {
+    zoom = 1;
+    resetView();
+    void sm.flyTo(viewPose(), 0.6);
+  };
   const onKey = (e: KeyboardEvent) => {
     if (paused || document.querySelector('.modal-back')) return;
     if (e.key === 'Escape') holdTool(null);
+    else if (e.key === 'r' || e.key === 'R' || e.key === 'พ') hud.onResetView?.();
+    else if (e.key === 't' || e.key === 'T' || e.key === 'ะ') hud.toggleClean();
+    else if (e.key.startsWith('Arrow')) {
+      e.preventDefault();
+      const d = { ArrowLeft: [-1, 0], ArrowRight: [1, 0], ArrowUp: [0, 1], ArrowDown: [0, -1] }[e.key];
+      if (d) panStep(d[0], d[1]);
+    }
     else if (e.key === 'h' || e.key === 'H' || e.key === 'ห') hud.onHint?.();
     else if (e.key === 'l' || e.key === 'L' || e.key === 'ส') (hud.el.querySelector('.hud-bar .btn:nth-child(3)') as HTMLButtonElement)?.click();
     else {
@@ -364,7 +459,7 @@ export async function runSurgery(opts: {
           h('li', {}, 'เลือกเครื่องมือจากถาดด้านขวา (หรือกดปุ่มตัวเลข 1–9, 0, -)'),
           h('li', {}, 'คลิก / แตะ / ลาก บนแผลตามคำสั่ง — คลิกขวาหรือกด Esc เพื่อวางเครื่องมือ'),
           lab ? h('li', {}, 'กด L เพื่อเปิด/ปิดป้ายชื่อ อวัยวะที่ระบุแล้วจะมีป้ายชื่อติดไว้') : h('li', {}, 'ดูจอสัญญาณชีพด้านขวาบน ถ้าเลือดออกต้องรีบแก้ไข'),
-          h('li', {}, 'ใช้ล้อเมาส์หรือปุ่ม ＋/－ เพื่อซูม'),
+          h('li', {}, 'ล้อเมาส์ = ซูมเข้าตรงจุดที่ชี้ • ปุ่มลูกศร (บนคีย์บอร์ดหรือมุมขวาล่าง) หรือวางเครื่องมือแล้วลากคลิกซ้าย = เลื่อนซ้าย-ขวา/ขึ้น-ลง • คลิกขวาค้างแล้วลาก = หมุนมุมมอง • R = กลับมุมเดิม • T = ซ่อนแผงข้อความ (จอสัมผัส: สองนิ้วบีบ/เลื่อน)'),
         ),
       ),
       buttons: [{ label: caseDef.mode === 'tutorial' ? 'เริ่มฝึก' : lab ? 'เริ่มผ่า' : 'เริ่มผ่าตัด', value: 1, primary: true }],
@@ -395,7 +490,7 @@ export async function runSurgery(opts: {
         if (a !== 'recovering') sfx.alarm();
       }
     }
-    tools.update(dt, hit.point, input.down && !paused, t);
+    tools.update(dt, (gripping && scene.gripPoint?.()) || hit.point, input.down && !paused, t);
     scene.update(dt, t, sm.camera);
     hud.updateLabels(scene.labels(), sm.camera);
   });
@@ -411,7 +506,8 @@ export async function runSurgery(opts: {
   stopUpdater();
   window.removeEventListener('keydown', onKey);
   input.onDown = input.onMove = input.onUp = input.onCancel = undefined;
-  input.onWheel = undefined;
+  input.onWheel = input.onOrbit = input.onPan = input.onPinch = undefined;
+  input.leftPans = undefined;
   holdTool(null);
   tools.dispose();
   s.surgeryTimeSec = elapsed;

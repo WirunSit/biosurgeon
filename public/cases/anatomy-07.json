@@ -37,8 +37,8 @@
     0.3
    ],
    "window": {
-    "hw": 0.06,
-    "hd": 0.09
+    "hw": 0.11,
+    "hd": 0.17
    },
    "drapeColor": "#5b7fa6",
    "opening": "incision",
@@ -47,11 +47,11 @@
      "points": [
       [
        0.0,
-       -0.065
+       -0.15
       ],
       [
        0.0,
-       0.052
+       0.13
       ]
      ]
     }
@@ -84,7 +84,7 @@
    ],
    "cavity": {
     "color": "#6a2a26",
-    "depth": 0.045
+    "depth": 0.1
    },
    "objects": [
     {
@@ -92,54 +92,75 @@
      "label": "กล้ามเนื้อไบเซปส์ (ด้านหน้า)",
      "shape": "ellipsoid",
      "at": [
-      -0.012,
-      -0.0213,
-      0.024
+      0.0098,
+      -0.0481,
+      0.0461
      ],
      "size": [
-      0.0095,
-      0.0075,
-      0.03
+      0.0498,
+      0.024,
+      0.1719
      ],
      "color": "#b5574f",
-     "rough": 0.55,
-     "model": "models/organs/biceps_r.glb"
+     "model": "models/organs/biceps_r.glb",
+     "atlas": true,
+     "rough": 0.55
     },
     {
      "id": "triceps",
      "label": "กล้ามเนื้อไตรเซปส์ (ด้านหลัง)",
      "shape": "ellipsoid",
      "at": [
-      0.014,
-      -0.0221,
-      0.026
+      0.0111,
+      -0.0442,
+      0.0866
      ],
      "size": [
-      0.0095,
-      0.0075,
-      0.032
+      0.0502,
+      0.0262,
+      0.1346
      ],
      "color": "#a64a44",
-     "rough": 0.55,
-     "model": "models/organs/triceps_r.glb"
+     "model": "models/organs/triceps_r.glb",
+     "atlas": true,
+     "rough": 0.55
+    },
+    {
+     "id": "brachialis",
+     "label": "กล้ามเนื้อแบรเคียลิส (ใต้ไบเซปส์)",
+     "shape": "ellipsoid",
+     "at": [
+      -0.0162,
+      0.0107,
+      0.058
+     ],
+     "size": [
+      0.0295,
+      0.0134,
+      0.1127
+     ],
+     "color": "#a8483f",
+     "model": "models/organs/brachialis_r.glb",
+     "atlas": true,
+     "rough": 0.55
     },
     {
      "id": "humerus",
      "label": "กระดูกต้นแขน",
-     "shape": "cylinder",
-     "r": 0.0045,
-     "h": 0.085,
+     "shape": "ellipsoid",
      "at": [
-      0.001,
-      -0.0172,
-      0.034
+      -0.0011,
+      -0.0632,
+      0.0561
      ],
-     "rot": [
-      90,
-      0,
-      0
+     "size": [
+      0.0505,
+      0.0247,
+      0.1537
      ],
      "color": "#ece3cf",
+     "model": "models/organs/humerus_r.glb",
+     "atlas": true,
      "rough": 0.7
     },
     {
@@ -148,41 +169,41 @@
      "shape": "tube",
      "points": [
       [
-       -0.012,
-       0.0075,
-       0.022
+       0.0217,
+       0.1135,
+       0.0462
       ],
       [
-       -0.009,
-       0.0215,
-       0.022
+       -0.0483,
+       0.0914,
+       0.0342
       ],
       [
-       -0.005,
-       0.0337,
-       0.024
+       -0.0453,
+       0.1051,
+       0.0375
       ]
      ],
-     "r": 0.0022,
-     "color": "#efe4cc",
-     "hit": 0.0045
+     "r": 0.003,
+     "color": "#f2ead8",
+     "hit": 0.006
     },
     {
      "id": "ligament",
      "label": "เอ็นยึดข้อศอก",
      "shape": "box",
      "at": [
-      0.004,
-      0.0359,
-      0.026
+      0.0393,
+      0.0814,
+      0.0561
      ],
      "size": [
-      0.012,
-      0.002,
-      0.004
+      0.004,
+      0.003,
+      0.012
      ],
      "color": "#f2ead8",
-     "hit": 0.004
+     "hit": 0.006
     },
     {
      "id": "forearm",
@@ -190,119 +211,133 @@
      "shape": "tube",
      "points": [
       [
-       0.0,
-       0.058,
-       -0.01
+       -0.0061,
+       0.1156,
+       -0.024
       ],
       [
-       0.0,
-       0.075,
-       -0.01
+       -0.0061,
+       0.2106,
+       -0.022
       ],
       [
-       0.0,
-       0.092,
-       -0.01
+       -0.0061,
+       0.3206,
+       -0.02
       ]
      ],
      "radii": [
-      0.0085,
-      0.0075,
-      0.0065
+      0.034,
+      0.03,
+      0.024
      ],
      "caps": true,
-     "axis": "y",
+     "axis": "x",
      "color": "#e6c7ad",
      "rough": 0.6,
-     "hit": 0.01
+     "hit": 0.03,
+     "motion": "none"
     },
     {
      "id": "periosteum",
      "label": "เยื่อหุ้มกระดูก",
      "shape": "box",
      "at": [
-      -0.0335,
+      -0.07,
       -0.03,
       -0.0052
      ],
      "size": [
       0.0018,
       0.0012,
-      0.044
+      0.09
      ],
      "color": "#d88a7a",
      "hidden": true,
-     "hit": 0.0022
+     "hit": 0.003,
+     "motion": "none"
     },
     {
      "id": "periosteum2",
      "shape": "box",
      "at": [
-      -0.0565,
+      -0.098,
       -0.03,
       -0.0052
      ],
      "size": [
       0.0018,
       0.0012,
-      0.044
+      0.09
      ],
      "color": "#d88a7a",
      "hidden": true,
-     "parent": "periosteum"
+     "parent": "periosteum",
+     "motion": "none"
     },
     {
      "id": "compact",
      "label": "เนื้อกระดูกแน่น",
      "shape": "box",
      "at": [
-      -0.037,
+      -0.0745,
       -0.03,
       -0.005
      ],
      "size": [
-      0.0052,
+      0.0042,
       0.0014,
-      0.044
+      0.09
      ],
      "color": "#f3ecd8",
-     "hidden": true
+     "hidden": true,
+     "motion": "none"
     },
     {
      "id": "compact2",
      "shape": "box",
      "at": [
-      -0.053,
+      -0.0935,
       -0.03,
       -0.005
      ],
      "size": [
-      0.0052,
+      0.0042,
       0.0014,
-      0.044
+      0.09
      ],
      "color": "#f3ecd8",
      "hidden": true,
-     "parent": "compact"
+     "parent": "compact",
+     "motion": "none"
     },
     {
      "id": "marrow",
      "label": "โพรงไขกระดูก",
      "shape": "box",
      "at": [
-      -0.045,
+      -0.084,
       -0.03,
       -0.0048
      ],
      "size": [
-      0.0108,
+      0.0054,
       0.0012,
-      0.044
+      0.09
      ],
      "color": "#b8443a",
-     "hidden": true
+     "hidden": true,
+     "motion": "none"
     }
-   ]
+   ],
+   "atlas": {
+    "origin": [
+     -0.19,
+     0.112,
+     -1.13
+    ],
+    "depth": 0.016
+   }
   },
   "steps": [
    {
@@ -313,7 +348,7 @@
     "path": "incision",
     "minAccuracy": 0.45,
     "onSuccess": [
-     "open:skin:0.012"
+     "open:skin:0.02"
     ]
    },
    {
@@ -324,8 +359,8 @@
     "target": "incision",
     "holdSec": 1.0,
     "onSuccess": [
-     "open:skin:0.032",
-     "open:fat:0.03",
+     "open:skin:0.066",
+     "open:fat:0.063",
      "label:fascia"
     ]
    },
@@ -336,7 +371,7 @@
     "action": "click",
     "target": "fascia",
     "onSuccess": [
-     "open:fascia:0.028"
+     "open:fascia:0.06"
     ]
    },
    {

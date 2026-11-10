@@ -19,8 +19,7 @@ function getLoader(): GLTFLoader {
   return loader;
 }
 
-/** โหลดแล้วย่อ/ขยายให้ขนาดใหญ่สุดเท่ากับ size (เมตร) และจัดศูนย์กลางที่จุดกำเนิด */
-export function loadModel(url: string, size: [number, number, number]): Promise<THREE.Group | null> {
+function load(url: string): Promise<THREE.Group | null> {
   if (!cache.has(url)) {
     cache.set(
       url,
@@ -33,7 +32,17 @@ export function loadModel(url: string, size: [number, number, number]): Promise<
         }),
     );
   }
-  return cache.get(url)!.then((src) => {
+  return cache.get(url)!;
+}
+
+/** โหลดโดยคงพิกัดเดิมของโมเดล (เมตร, พิกัดร่างกายของ BodyParts3D) — ใช้วางอวัยวะตามตำแหน่งจริง */
+export function loadModelRaw(url: string): Promise<THREE.Group | null> {
+  return load(url).then((src) => (src ? src.clone(true) : null));
+}
+
+/** โหลดแล้วย่อ/ขยายให้ขนาดใหญ่สุดเท่ากับ size (เมตร) และจัดศูนย์กลางที่จุดกำเนิด */
+export function loadModel(url: string, size: [number, number, number]): Promise<THREE.Group | null> {
+  return load(url).then((src) => {
     if (!src) return null;
     const m = src.clone(true);
     const box = new THREE.Box3().setFromObject(m);

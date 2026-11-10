@@ -10,41 +10,53 @@ def chest_open(memb_id, memb_name, memb_color, memb_learn):
     layers = CHEST_LAYERS + [{"id": memb_id, "name": memb_name, "depth": 0.026, "color": memb_color, "edge": "#b8a78f", "tex": "membrane"}]
     steps = [
         {"id": "incise", "say": "กรีดผิวหนังหุ่นจำลองตามแนวกลางหน้าอก (ลากตามเส้นประ)", "tool": "scalpel", "action": "trace", "path": "incision", "minAccuracy": 0.45, "onSuccess": ["open:skin:0.02"]},
-        {"id": "open", "say": "จี้เปิดกล้ามเนื้อตามแนวแผลจนเห็นกระดูกอก (กดค้างบนแนวแผล)", "tool": "cautery", "action": "hold", "target": "incision", "holdSec": 1.0, "onSuccess": ["open:skin:0.07", "open:muscle:0.067", "label:bone"]},
+        {"id": "open", "say": "จี้เปิดกล้ามเนื้อตามแนวแผลจนเห็นกระดูกอก (กดค้างบนแนวแผล)", "tool": "cautery", "action": "hold", "target": "incision", "holdSec": 1.0, "onSuccess": ["open:skin:0.125", "open:muscle:0.121", "label:bone"]},
         {"id": "saw", "say": "เลื่อยกระดูกอกตามแนวกลาง (ลากตามเส้นประบนกระดูก)", "tool": "saw", "action": "trace", "path": "incision", "layer": "bone", "minAccuracy": 0.4, "onSuccess": ["trail", "open:bone:0.012"],
          "learn": "กระดูกอกและกระดูกซี่โครงเป็นกรงป้องกันอวัยวะในช่องอก ซี่โครงยึดกับกระดูกอกด้วยกระดูกอ่อน ทรวงอกจึงขยายได้เวลาหายใจ"},
-        {"id": "spread", "say": "ใช้เครื่องถ่างซี่โครงถ่างกระดูกอกออก (กดที่แผลแล้วลากถ่าง)", "tool": "spreader", "action": "drag", "target": "incision", "minDrag": 0.012, "onSuccess": ["open:bone:0.063", f"label:{memb_id}"]},
-        {"id": "membrane", "say": f"เปิด{memb_name}ด้วยกรรไกร (คลิกที่{memb_name})", "tool": "scissors", "action": "click", "target": memb_id, "onSuccess": [f"open:{memb_id}:0.058"], "learn": memb_learn},
+        {"id": "spread", "say": "ใช้เครื่องถ่างซี่โครงถ่างกระดูกอกออก (กดที่แผลแล้วลากถ่าง)", "tool": "spreader", "action": "drag", "target": "incision", "minDrag": 0.012, "onSuccess": ["open:bone:0.116", f"label:{memb_id}"]},
+        {"id": "membrane", "say": f"เปิด{memb_name}ด้วยกรรไกร (คลิกที่{memb_name})", "tool": "scissors", "action": "click", "target": memb_id, "onSuccess": [f"open:{memb_id}:0.11"], "learn": memb_learn},
     ]
     return layers, steps
 
 
-PATH = {"incision": {"points": [[0.0, -0.085], [0.0, 0.085]]}}
+PATH = {"incision": {"points": [[0.0, -0.16], [0.0, 0.16]]}}
+# ช่องอกวางโมเดลตามพิกัดจริง (สเกล 1:1): origin = กึ่งกลางปอดในพิกัดโมเดล อยู่ใต้กึ่งกลางแผล
+ATLAS = {"origin": [0.0, 0.2, -1.255], "depth": 0.032}
+LUNGS = ["R_upper", "R_middle", "R_lower", "L_upper", "L_lower"]
 
 # ---------------- ด่าน 2 ระบบหายใจ ----------------
 lung = "#eaa3a3"
 objects = [
-    {"id": "trachea", "label": "หลอดลม", "shape": "tube", "points": T([(0.0, -0.09, 0.036), (0.0, -0.068, 0.038), (0.0, -0.05, 0.042)]), "r": 0.0058, "color": "#e6dccf", "rough": 0.5, "hit": 0.007},
-    {"id": "bronchus_R", "label": "หลอดลมแขนงขวา", "shape": "tube", "points": T([(0.0, -0.05, 0.042), (-0.011, -0.04, 0.045), (-0.02, -0.032, 0.049)]), "r": 0.0042, "color": "#e6dccf", "hit": 0.006},
-    {"id": "bronchus_L", "label": "หลอดลมแขนงซ้าย", "shape": "tube", "points": T([(0.0, -0.05, 0.042), (0.013, -0.045, 0.045), (0.024, -0.04, 0.049)]), "r": 0.0035, "color": "#e6dccf", "hit": 0.006},
-    {"id": "R_upper", "label": "ปอดขวากลีบบน", "shape": "ellipsoid", "at": A(-0.038, -0.026, 0.052), "size": [0.016, 0.014, 0.02], "color": "#eaa3a3", "rough": 0.6},
-    {"id": "R_middle", "label": "ปอดขวากลีบกลาง", "shape": "ellipsoid", "at": A(-0.04, 0.004, 0.05), "size": [0.015, 0.013, 0.012], "color": "#de9090", "rough": 0.6},
-    {"id": "R_lower", "label": "ปอดขวากลีบล่าง", "shape": "ellipsoid", "at": A(-0.037, 0.032, 0.052), "size": [0.016, 0.014, 0.019], "color": "#eeb0ab", "rough": 0.6},
-    {"id": "L_upper", "label": "ปอดซ้ายกลีบบน", "shape": "ellipsoid", "at": A(0.04, -0.018, 0.052), "size": [0.016, 0.014, 0.025], "color": "#eaa3a3", "rough": 0.6},
-    {"id": "L_lower", "label": "ปอดซ้ายกลีบล่าง", "shape": "ellipsoid", "at": A(0.041, 0.03, 0.052), "size": [0.015, 0.014, 0.02], "color": "#eeb0ab", "rough": 0.6},
-    {"id": "heart", "label": "หัวใจ (ในเยื่อหุ้มหัวใจ)", "shape": "ellipsoid", "at": A(0.006, 0.01, 0.054), "size": [0.016, 0.013, 0.022], "color": "#b5414a", "rough": 0.4, "pulse": True},
-    {"id": "diaphragm", "label": "กะบังลม", "shape": "ellipsoid", "at": A(0.0, 0.06, 0.06), "size": [0.05, 0.005, 0.01], "color": "#b0524a", "rough": 0.5},
+    atlas_obj("trachea", "หลอดลม", "trachea", "#e6dccf", ATLAS, rough=0.5),
+    atlas_obj("bronchus_R", "หลอดลมแขนงขวา", "bronchus_r", "#e6dccf", ATLAS),
+    atlas_obj("bronchus_L", "หลอดลมแขนงซ้าย", "bronchus_l", "#e6dccf", ATLAS),
+    atlas_obj("R_upper", "ปอดขวากลีบบน", "lung_r_upper", "#eaa3a3", ATLAS, rough=0.6),
+    atlas_obj("R_middle", "ปอดขวากลีบกลาง", "lung_r_middle", "#de9090", ATLAS, rough=0.6, draggable=True),
+    atlas_obj("R_lower", "ปอดขวากลีบล่าง", "lung_r_lower", "#eeb0ab", ATLAS, rough=0.6),
+    atlas_obj("L_upper", "ปอดซ้ายกลีบบน", "lung_l_upper", "#eaa3a3", ATLAS, rough=0.6),
+    atlas_obj("L_lower", "ปอดซ้ายกลีบล่าง", "lung_l_lower", "#eeb0ab", ATLAS, rough=0.6),
+    atlas_obj("heart", "หัวใจ (ในเยื่อหุ้มหัวใจ)", "heart", "#b5414a", ATLAS, rough=0.4, pulse=True),
+    atlas_obj("diaphragm", "กะบังลม", "diaphragm", "#b0524a", ATLAS, rough=0.5),
 ]
+# หลอดลมแขนงอยู่หลังหัวใจและแทรกเข้าไปในเนื้อปอด: ทำปอดกับหัวใจให้โปร่งใสชั่วคราว (โปร่งใสมาก = คลิกทะลุได้)
+SEE_AIRWAY = [f"opacity:{x}:0.1" for x in LUNGS + ["heart"]]
+SOLID = [f"opacity:{x}:1" for x in LUNGS + ["heart"]]
 HEART_NOT = "นี่คือหัวใจ อยู่ระหว่างปอดสองข้างค่อนไปทางซ้าย — เป็นระบบหมุนเวียนเลือด ไม่ใช่ระบบหายใจ"
 layers, open_steps = chest_open("pleura", "เยื่อหุ้มปอด", "#e2c7c0",
                                 "เยื่อหุ้มปอดมี 2 ชั้น ระหว่างชั้นมีของเหลวบาง ๆ และความดันต่ำกว่าบรรยากาศ ปอดจึงพองตามทรวงอกได้ (ถ้ามีลมรั่วเข้าไป ปอดจะแฟบ — เคส 2.1)")
 steps = open_steps + [
     click("trachea", "ระบุหลอดลม — ท่อที่มีวงกระดูกอ่อนอยู่ตรงกลางด้านบน", "trachea",
           "หลอดลมมีกระดูกอ่อนรูปตัว C เรียงเป็นวง ทำให้ท่อไม่แฟบเวลาหายใจเข้า ด้านในบุด้วยเซลล์ที่มีซิเลียและเมือกดักฝุ่นแล้วพัดขึ้นไปที่คอ"),
-    {"id": "bronchi", "say": "ระบุหลอดลมแขนงขวา แล้วหลอดลมแขนงซ้าย", "tool": "forceps", "action": "sequence", "targets": ["bronchus_R", "bronchus_L"],
+    {"id": "bronchi", "say": "ระบุหลอดลมแขนงขวา แล้วหลอดลมแขนงซ้าย (หุ่นจำลองทำปอดให้โปร่งใสชั่วคราว จะเห็นหลอดลมแตกแขนงเข้าไปในปอด)", "tool": "forceps", "action": "sequence", "targets": ["bronchus_R", "bronchus_L"],
+     "onStart": SEE_AIRWAY, "onSuccess": SOLID,
      "learn": "หลอดลมแขนงขวาสั้น กว้าง และชันกว่าข้างซ้าย สิ่งแปลกปลอมที่สำลักลงไปจึงมักตกลงปอดขวา"},
-    {"id": "right-lobes", "say": "ระบุกลีบของปอดขวาจากบนลงล่าง: กลีบบน → กลีบกลาง → กลีบล่าง", "tool": "forceps", "action": "sequence", "targets": ["R_upper", "R_middle", "R_lower"],
-     "mistakes": [wrong("heart", HEART_NOT)]},
+    {"id": "right-lobes", "say": "ระบุกลีบของปอดขวา: กลีบบน → กลีบกลาง", "tool": "forceps", "action": "sequence", "targets": ["R_upper", "R_middle"],
+     "onSuccess": ["label:R_upper", "label:R_middle"], "mistakes": [wrong("heart", HEART_NOT)]},
+    {"id": "lift-middle", "say": "กลีบล่างของปอดขวาซ่อนอยู่ด้านหลัง-ล่าง ใช้ปากคีบยกกลีบกลางขึ้น (กดที่กลีบกลางแล้วลาก)", "tool": "forceps", "action": "drag", "target": "R_middle", "minDrag": 0.012,
+     "onSuccess": ["move:R_middle:0.03:-0.035:-0.012"]},
+    click("R_lower", "ระบุกลีบล่างของปอดขวา — กลีบที่ใหญ่ที่สุด วางบนกะบังลม", "R_lower",
+          "รอยแยกระหว่างกลีบ (fissure) แบ่งปอดขวาเป็น 3 กลีบ กลีบล่างอยู่ด้านหลังและวางบนกะบังลม เวลาฟังเสียงปอดกลีบล่างจึงฟังได้ดีที่สุดจากด้านหลัง",
+          mistakes=[wrong("heart", HEART_NOT)]),
     {"id": "left-lobes", "say": "ระบุกลีบของปอดซ้าย: กลีบบน → กลีบล่าง", "tool": "forceps", "action": "sequence", "targets": ["L_upper", "L_lower"],
      "mistakes": [wrong("heart", HEART_NOT)]},
     {"id": "why-two", "say": "สังเกตจำนวนกลีบปอด", "action": "choice",
@@ -70,39 +82,45 @@ lab("anatomy-02", 2, "respiratory", "ระบบหายใจ", "สำรว
      "ห้องปฏิบัติการกายวิภาค: วันนี้เราเปิดกระดูกอกของหุ่นจำลอง เพื่อดูว่าอากาศเดินทางจากหลอดลมไปสู่ปอดแต่ละกลีบอย่างไร และกล้ามเนื้ออะไรทำให้เราหายใจได้"),
     steps, objects, layers, PATH, "incision", quiz,
     {"id": "lab-respiratory", "title": "แผนที่ช่องอก: ระบบหายใจ", "text": "หลอดลมแยกเป็นหลอดลมแขนงขวา (สั้น กว้าง ชัน) และซ้าย ปอดขวามี 3 กลีบ ปอดซ้ายมี 2 กลีบเพราะเว้นที่ให้หัวใจ ปอดหุ้มด้วยเยื่อหุ้มปอด 2 ชั้น และกะบังลมรูปโดมใต้ปอดเป็นกล้ามเนื้อหลักของการหายใจ"},
-    window=(0.09, 0.1), center=(0.0, -0.33), cavity=("#5a2a2a", 0.075))
+    window=(0.15, 0.18), center=(0.0, -0.33), cavity=("#5a2a2a", 0.17), atlas=ATLAS)
 
 # ---------------- ด่าน 3 ระบบหมุนเวียนเลือด ----------------
 red, blue = "#c0283a", "#3f5fb8"
+H = "heart"
 objects = [
-    {"id": "lung_R", "label": "ปอดขวา", "shape": "ellipsoid", "at": A(-0.044, 0.0, 0.056), "size": [0.014, 0.012, 0.045], "color": "#eaa3a3", "rough": 0.6},
-    {"id": "lung_L", "label": "ปอดซ้าย", "shape": "ellipsoid", "at": A(0.047, 0.004, 0.056), "size": [0.012, 0.012, 0.042], "color": "#eaa3a3", "rough": 0.6},
-    {"id": "heart", "label": "หัวใจ", "shape": "ellipsoid", "at": A(0.004, 0.006, 0.05), "size": [0.026, 0.016, 0.03], "rot": [0, -20, 0], "color": "#b5414a", "rough": 0.4, "pulse": True},
-    {"id": "lad", "label": "หลอดเลือดแดงโคโรนารี", "shape": "tube", "points": T([(0.004, -0.018, 0.034), (0.006, 0.0, 0.034), (0.012, 0.022, 0.036), (0.016, 0.034, 0.042)]), "r": 0.0016, "color": "#e04050", "hit": 0.004, "parent": "heart"},
-    {"id": "aorta", "label": "หลอดเลือดแดงใหญ่ (เอออร์ตา)", "shape": "tube", "points": T([(0.004, -0.02, 0.046), (0.0, -0.048, 0.04), (0.014, -0.06, 0.044), (0.026, -0.05, 0.054)]), "r": 0.0058, "color": red, "hit": 0.007},
-    {"id": "pulm_trunk", "label": "หลอดเลือดแดงปอด", "shape": "tube", "points": T([(0.012, -0.016, 0.04), (0.018, -0.034, 0.042), (0.026, -0.04, 0.048)]), "r": 0.005, "color": blue, "hit": 0.006},
-    {"id": "svc", "label": "หลอดเลือดดำใหญ่ส่วนบน", "shape": "tube", "points": T([(-0.022, -0.075, 0.046), (-0.022, -0.05, 0.048), (-0.02, -0.022, 0.05)]), "r": 0.0052, "color": blue, "hit": 0.006},
-    {"id": "ivc", "label": "หลอดเลือดดำใหญ่ส่วนล่าง", "shape": "tube", "points": T([(-0.018, 0.06, 0.058), (-0.02, 0.04, 0.056), (-0.02, 0.028, 0.054)]), "r": 0.0058, "color": blue, "hit": 0.006},
-    {"id": "pulm_vein", "label": "หลอดเลือดดำปอด", "shape": "tube", "points": T([(0.036, -0.02, 0.058), (0.026, -0.016, 0.056), (0.016, -0.014, 0.054)]), "r": 0.0032, "color": red, "hit": 0.005, "hidden": True},
-    {"id": "ra", "label": "ห้องบนขวา", "shape": "ellipsoid", "at": A(-0.016, -0.006, 0.05), "size": [0.009, 0.007, 0.01], "color": "#7a3b8f", "hidden": True},
-    {"id": "rv", "label": "ห้องล่างขวา", "shape": "ellipsoid", "at": A(-0.004, 0.016, 0.05), "size": [0.01, 0.007, 0.012], "color": "#5b5fd0", "hidden": True},
-    {"id": "la", "label": "ห้องบนซ้าย", "shape": "ellipsoid", "at": A(0.014, -0.012, 0.054), "size": [0.009, 0.007, 0.009], "color": "#d0506a", "hidden": True},
-    {"id": "lv", "label": "ห้องล่างซ้าย (ผนังหนา)", "shape": "ellipsoid", "at": A(0.019, 0.014, 0.052), "size": [0.011, 0.008, 0.014], "color": "#c02838", "hidden": True},
-    {"id": "septum", "label": "ผนังกั้นห้องหัวใจ", "shape": "box", "at": A(0.007, 0.016, 0.048), "size": [0.0025, 0.006, 0.02], "rot": [0, -20, 0], "color": "#e8b0a8", "hidden": True, "hit": 0.004},
+    atlas_obj("lung_R", "ปอดขวา", "lung_r", "#eaa3a3", ATLAS, rough=0.6),
+    atlas_obj("lung_L", "ปอดซ้าย", "lung_l", "#eaa3a3", ATLAS, rough=0.6),
+    atlas_obj("heart", "หัวใจ", "heart", "#b5414a", ATLAS, rough=0.4, pulse=True),
+    atlas_obj("lad", "หลอดเลือดแดงโคโรนารี", "lad", "#e04050", ATLAS, parent="heart", motion="none"),
+    atlas_obj("aorta", "หลอดเลือดแดงใหญ่ (เอออร์ตา)", "aorta", red, ATLAS),
+    atlas_obj("pulm_trunk", "หลอดเลือดแดงปอด", "pulm_artery", blue, ATLAS),
+    atlas_obj("svc", "หลอดเลือดดำใหญ่ส่วนบน", "svc", blue, ATLAS),
+    atlas_obj("ivc", "หลอดเลือดดำใหญ่ส่วนล่าง", "ivc", blue, ATLAS),
+    atlas_obj("pulm_vein", "หลอดเลือดดำปอด", "pulm_vein", red, ATLAS, hidden=True),
+    # ห้องหัวใจ (แบบจำลองภายใน แสดงเมื่อเปิดผนัง) วางตามตำแหน่งจริงในหัวใจ: ขวา-หน้า = ห้องล่างขวา, หลัง-บน = ห้องบนซ้าย, ซ้าย-ล่าง = ห้องล่างซ้าย
+    atlas_blob("ra", "ห้องบนขวา", ATLAS, frac(H, 0.14, 0.55, 0.4), [0.02, 0.02, 0.024], "#7a3b8f", hidden=True),
+    atlas_blob("rv", "ห้องล่างขวา", ATLAS, frac(H, 0.4, 0.78, 0.62), [0.024, 0.014, 0.028], "#5b5fd0", hidden=True),
+    atlas_blob("la", "ห้องบนซ้าย", ATLAS, frac(H, 0.5, 0.28, 0.3), [0.022, 0.015, 0.018], "#d0506a", hidden=True),
+    atlas_blob("lv", "ห้องล่างซ้าย (ผนังหนา)", ATLAS, frac(H, 0.7, 0.5, 0.66), [0.022, 0.02, 0.032], "#c02838", hidden=True),
+    atlas_blob("septum", "ผนังกั้นห้องหัวใจ", ATLAS, frac(H, 0.56, 0.8, 0.62), [0.004, 0.02, 0.034], "#e8b0a8", shape="box", rot=[0, -35, 0], hidden=True, hit=0.006),
 ]
 layers, open_steps = chest_open("pericardium", "เยื่อหุ้มหัวใจ", "#dccbb8",
                                 "เยื่อหุ้มหัวใจเป็นถุง 2 ชั้นที่มีของเหลวหล่อลื่นอยู่ภายใน ทำให้หัวใจเต้นได้โดยไม่เสียดสีกับอวัยวะรอบ ๆ")
+# ถ่างปอดทั้งสองข้างออกด้านข้าง (เหมือนใช้ตะขอถ่างระหว่างผ่าตัดหัวใจ) ให้เห็นผิวหน้าหัวใจเต็ม
+open_steps[-1]["onSuccess"] += ["move:lung_R:-0.03:0:0.012", "move:lung_L:0.035:0:0.012"]
 steps = open_steps + [
     click("heart", "ระบุหัวใจ", "heart", "หัวใจมีขนาดประมาณกำปั้นของเจ้าของ วางอยู่ระหว่างปอดสองข้างค่อนไปทางซ้าย เต้นราววันละ 100,000 ครั้ง",
           mistakes=[wrong("lung_L", "นี่คือปอดซ้าย หัวใจอยู่ตรงกลางระหว่างปอดสองข้าง")]),
     click("lad", "ระบุหลอดเลือดแดงโคโรนารีที่วิ่งบนผิวหัวใจ", "lad", "กล้ามเนื้อหัวใจไม่ได้รับสารอาหารจากเลือดในห้องหัวใจ แต่รับจากหลอดเลือดโคโรนารีที่แยกจากโคนเอออร์ตา (ถ้าตีบจะเจ็บหน้าอก — เคส 3.2)"),
-    {"id": "great", "say": "ระบุหลอดเลือดใหญ่: เอออร์ตา → หลอดเลือดแดงปอด → หลอดเลือดดำใหญ่ส่วนบน → หลอดเลือดดำใหญ่ส่วนล่าง", "tool": "forceps", "action": "sequence", "targets": ["aorta", "pulm_trunk", "svc", "ivc"],
+    {"id": "great", "say": "ระบุหลอดเลือดใหญ่: เอออร์ตา → หลอดเลือดแดงปอด → หลอดเลือดดำใหญ่ส่วนบน → หลอดเลือดดำใหญ่ส่วนล่าง (หุ่นจำลองทำปอดและหัวใจโปร่งใสชั่วคราว จะเห็นหลอดเลือดแดงปอดแตกแขนงเข้าปอด)", "tool": "forceps", "action": "sequence", "targets": ["aorta", "pulm_trunk", "svc", "ivc"],
+     "onStart": ["opacity:lung_R:0.1", "opacity:lung_L:0.1", "opacity:heart:0.11"], "onSuccess": ["opacity:lung_R:1", "opacity:lung_L:1", "opacity:heart:1"],
      "learn": "สีในแบบจำลอง: แดง = เลือดที่มีออกซิเจนมาก น้ำเงิน = ออกซิเจนน้อย — สังเกตว่าหลอดเลือด 'แดง' ปอดเป็นสีน้ำเงิน เพราะหลอดเลือดแดงหมายถึงนำเลือด 'ออกจากหัวใจ' ไม่ได้ขึ้นกับปริมาณออกซิเจน"},
     {"id": "cutaway", "say": "เปิดผนังหัวใจด้านหน้าของหุ่นจำลองเพื่อดูห้องภายใน (คลิกที่หัวใจ)", "tool": "scalpel", "action": "click", "target": "heart",
      "onSuccess": ["opacity:heart:0.08", "pulse:heart:off", "hide:lad", "show:ra", "show:rv", "show:la", "show:lv", "show:septum", "show:pulm_vein"]},
     {"id": "flow", "say": "ไล่ทางเดินเลือด: ห้องบนขวา → ห้องล่างขวา → หลอดเลือดแดงปอด → หลอดเลือดดำปอด → ห้องบนซ้าย → ห้องล่างซ้าย → เอออร์ตา", "tool": "forceps", "action": "sequence",
      "targets": ["ra", "rv", "pulm_trunk", "pulm_vein", "la", "lv", "aorta"],
-     "onSuccess": ["label:ra", "label:rv", "label:la", "label:lv"],
+     "onStart": ["opacity:lung_R:0.1", "opacity:lung_L:0.1"],
+     "onSuccess": ["label:ra", "label:rv", "label:la", "label:lv", "opacity:lung_R:1", "opacity:lung_L:1"],
      "hint": "หัวใจซีกขวารับเลือดจากร่างกายส่งไปปอด ซีกซ้ายรับเลือดจากปอดส่งไปทั่วร่างกาย",
      "learn": "นี่คือการหมุนเวียนเลือด 2 วงจร: วงจรปอด (ซีกขวา → ปอด → ซีกซ้าย) และวงจรร่างกาย (ซีกซ้าย → ร่างกาย → ซีกขวา)"},
     click("septum", "ระบุผนังกั้นห้องหัวใจระหว่างห้องล่างขวาและซ้าย", "septum",
@@ -124,4 +142,4 @@ lab("anatomy-03", 3, "circulatory", "ระบบหมุนเวียนเ�
      "ห้องปฏิบัติการกายวิภาค: วันนี้เราดูหัวใจของหุ่นจำลองตั้งแต่ภายนอกจนถึงห้องภายใน แล้วไล่ทางเดินของเลือดผ่านหัวใจ ปอด และร่างกาย"),
     steps, objects, layers, PATH, "incision", quiz,
     {"id": "lab-circulatory", "title": "แผนที่หัวใจ", "text": "หัวใจมี 4 ห้อง ซีกขวารับเลือดจากหลอดเลือดดำใหญ่ส่งไปปอดทางหลอดเลือดแดงปอด ซีกซ้ายรับเลือดจากหลอดเลือดดำปอดส่งไปทั่วร่างกายทางเอออร์ตา ผนังห้องล่างซ้ายหนาที่สุด กล้ามเนื้อหัวใจรับเลือดจากหลอดเลือดโคโรนารี"},
-    window=(0.09, 0.1), center=(0.0, -0.33), cavity=("#5a2a2a", 0.075))
+    window=(0.15, 0.18), center=(0.0, -0.33), cavity=("#5a2a2a", 0.17), atlas=ATLAS)

@@ -5,7 +5,9 @@ import { openingHalfWidth, openingInside } from '../core/IncisionSystem';
 import { buildCavity, buildDrape, buildLayer, buildTowels, fatTexture, muscleTexture, surfaceY, WIN, type Layer, type Win } from '../procedural/patient';
 import { buildTool } from '../procedural/tools';
 import { capEnds, varTube } from '../procedural/geom';
-import { loadModel } from '../core/AssetLoader';
+import { loadModel, loadModelRaw } from '../core/AssetLoader';
+import { bakeRest, longAxis, tissueKindOf, tissueMaterial, TissueDyn } from '../procedural/tissue';
+import { CutWall, wallKindOf } from '../procedural/cutwall';
 
 /**
  * ฉากผ่าตัดทั่วไปที่สร้างทั้งหมดจากข้อมูล JSON (field ในไฟล์เคส)
@@ -31,6 +33,12 @@ interface Obj {
   motion: NonNullable<FieldObjectDef['motion']>;
   /** เฟสสุ่มต่อชิ้น ไม่ให้ลำไส้ทุกส่วนบีบพร้อมกัน */
   seed: number;
+  /** รอยกด/รอยดึง/คลื่นกระเพื่อมเฉพาะจุดบนผิว */
+  dyn: TissueDyn;
+  /** สปริงตอนลากอวัยวะที่หยิบได้ (ตามมือแบบมีน้ำหนัก ไม่ติดเมาส์แข็ง ๆ) */
+  spring: { goal: THREE.Vector3; vel: THREE.Vector3; grip: THREE.Vector3 | null } | null;
+  /** โมเดลที่วางตามพิกัดจริง (atlas): จุดบนผิว (พิกัดของ inner) ที่ใช้หาจุดที่มองเห็นได้ */
+  surf: THREE.Vector3[] | null;
 }
 
 interface LayerMeta {
@@ -74,6 +82,7 @@ export class FieldScene implements SurgeryScene {
   private Y0: number;
   private layers: LayerMeta[] = [];
   private layerMap = new Map<string, LayerMeta>();
+  private walls: CutWall[] = [];
   private objs = new Map<string, Obj>();
   private pickables: THREE.Object3D[] = [];
   private paths = new Map<string, { pts: THREE.Vector2[]; circle: [number, number, number] | null }>();
@@ -108,6 +117,12 @@ export class FieldScene implements SurgeryScene {
   private jiggles = new Map<string, number>();
   private pressing: string | null = null;
   private tug: { id: string; vec: THREE.Vector2; lift: number } | null = null;
+  /** อวัยวะที่ปากคีบจับอยู่ (local = จุดจับในพิกัด inner, y = ความสูงระนาบที่ลากตาม) */
+  private grip: { o: Obj; local: THREE.Vector3; start: THREE.Vector3; t: number } | null = null;
+  /** วัตถุที่ขั้นตอนแบบลาก (drag) กำลังควบคุมอยู่ — การคีบยกจะไม่แย่งกัน */
+  private dragging: string | null = null;
+  /** จุดที่เครื่องมือแตะล่าสุด (ใช้เป็นจุดกด/จุดคีบของเนื้อเยื่อ) */
+  private lastTouch: { id: string; point: THREE.Vector3 } | null = null;
   private smokeT = 0;
   private anims: Anim[] = [];
   private organLabels = new Set<string>();
@@ -116,6 +131,14 @@ export class FieldScene implements SurgeryScene {
   private closeFrom = new Map<string, number>();
   private pose: { pos: THREE.Vector3; target: THREE.Vector3 };
   private camera: THREE.Camera | null = null;
+  /** จุดยึดที่มองเห็นได้จริงของวัตถุ atlas (คำนวณใหม่เมื่อกล้อง/ช่องเปิด/ตำแหน่งวัตถุเปลี่ยน) */
+  private visAnchor = new Map<string, { key: string; local: THREE.Vector3; t: number }>();
+  private clock = 0;
+  /** เพิ่มทุกครั้งที่ฉากเปลี่ยน (effect / แอนิเมชันจบ) — ให้คำนวณจุดที่มองเห็นใหม่ */
+  private sceneVer = 0;
+  /** เวลาที่กล้องขยับล่าสุด — ระหว่างหมุน/ซูมใช้จุดยึดเดิม ไม่ยิงรังสีคำนวณใหม่ทุกเฟรม */
+  private camMovedAt = 0;
+  private lastCam = new THREE.Vector3();
 
   constructor(
     private def: FieldDef,
@@ -156,6 +179,11 @@ export class FieldScene implements SurgeryScene {
         params.color = 0xffffff;
       } else if (ld.tex === 'membrane') {
         params.roughness = 0.2;
+        // เยื่อบาง (เยื่อบุช่องท้อง เยื่อหุ้มปอด ฯลฯ) โปร่งแสง เห็นสีเนื้อเยื่อด้านล่างจาง ๆ ไม่เป็นแผ่นสีครีมทึบ
+        if (i > 0) {
+          params.transparent = true;
+          params.opacity = /fascia|ligament|paratenon|sheath|tunica/.test(ld.id) ? 0.85 : 0.55;
+        }
       } else if (ld.tex === 'bone') {
         params.roughness = 0.75;
       }
@@ -166,6 +194,11 @@ export class FieldScene implements SurgeryScene {
       this.layerMap.set(ld.id, meta);
       this.root.add(L.mesh);
       this.pickables.push(L.mesh);
+      // ผนังรอยตัด: เห็นความหนาและเนื้อในของชั้นนี้ตรงขอบแผล
+      const bottom = def.layers[i + 1]?.depth ?? ld.depth + 0.002 * this.unit;
+      const wall = new CutWall(L, a, b, shape, this.W, Math.max(bottom, ld.depth + 0.0015 * this.unit), wallKindOf(ld.tex, i), this.unit, reducedGore);
+      this.walls.push(wall);
+      this.root.add(wall.mesh);
     });
 
     if (def.cavity !== null) {
@@ -173,6 +206,11 @@ export class FieldScene implements SurgeryScene {
       const top = (def.layers[def.layers.length - 1]?.depth ?? 0) + 0.006 * this.unit;
       const cavity = buildCavity(this.W, cav.color, cav.depth, top);
       cavity.userData.targetId = 'cavity';
+      // ผนังโพรง (เยื่อบุช่องท้อง) มีเส้นเลือดและความเปียกเหมือนอวัยวะ
+      (cavity.material as THREE.Material).dispose();
+      cavity.material = tissueMaterial({ color: cav.color, side: THREE.BackSide }, 'cavity', 0.06 * this.unit);
+      cavity.updateMatrixWorld(true);
+      bakeRest(cavity, cavity.position.clone(), new THREE.Vector3(0, 0, 1));
       this.root.add(cavity);
       this.pickables.push(cavity);
     }
@@ -277,21 +315,26 @@ export class FieldScene implements SurgeryScene {
     const pivot = d.at ? this.P(d.at) : d.points ? this.P(d.points[0]) : this.P([0, 0, 0.04]);
     group.position.copy(pivot);
     const opacity = d.opacity ?? 1;
-    // ผิวอวัยวะเปียกชื้น: ชั้นเคลือบใส (clearcoat) ให้แสงสะท้อนแบบเนื้อเยื่อจริง
-    const wet = !d.inside && d.shape !== 'ring' && d.shape !== 'sheet' && (d.metal ?? 0) < 0.5;
-    const mat = new THREE.MeshPhysicalMaterial({
-      clearcoat: wet ? 0.55 : 0,
-      clearcoatRoughness: 0.32,
-      color: d.color,
-      roughness: d.rough ?? 0.42,
-      metalness: d.metal ?? 0,
-      transparent: opacity < 1,
-      opacity,
-      emissive: d.emissive ?? 0x000000,
-      emissiveIntensity: d.emissive ? 0.2 : 0,
-      side: d.inside ? THREE.BackSide : d.shape === 'disc' || d.shape === 'sheet' || d.shape === 'ring' ? THREE.DoubleSide : THREE.FrontSide,
-      depthWrite: opacity >= 0.95,
-    });
+    const s = d.size ?? [d.r ?? 0.01, d.r ?? 0.01, d.r ?? 0.01];
+    // วัสดุเนื้อเยื่อ: สีด่าง เส้นเลือด ผิวขรุขระ ชั้นเมือกเปียก และยุบ/ยืดเฉพาะจุดได้ (ชนิดเดาจากรหัส/โมเดล/ป้ายชื่อ)
+    const kind = d.tissue ?? tissueKindOf(`${d.id} ${d.model ?? ''} ${d.label ?? ''}`, { metal: d.metal, blood: d.blood });
+    const flat = d.shape === 'ring' || d.shape === 'sheet' || d.shape === 'disc';
+    const mat = tissueMaterial(
+      {
+        color: d.color,
+        ...(d.rough !== undefined ? { roughness: d.rough } : {}),
+        ...(d.inside || kind === 'synthetic' ? { clearcoat: 0, sheen: 0 } : {}),
+        metalness: d.metal ?? 0,
+        transparent: opacity < 1,
+        opacity,
+        emissive: d.emissive ?? 0x000000,
+        emissiveIntensity: d.emissive ? 0.2 : 0,
+        side: d.inside ? THREE.BackSide : flat ? THREE.DoubleSide : THREE.FrontSide,
+        depthWrite: opacity >= 0.95,
+      },
+      kind,
+      this.tissueSize(d, s),
+    );
     const meshes: THREE.Mesh[] = [];
     const add = (geo: THREE.BufferGeometry, pos?: THREE.Vector3) => {
       const m = new THREE.Mesh(geo, mat);
@@ -303,7 +346,6 @@ export class FieldScene implements SurgeryScene {
       meshes.push(m);
       return m;
     };
-    const s = d.size ?? [d.r ?? 0.01, d.r ?? 0.01, d.r ?? 0.01];
     let anchor = new THREE.Vector3(0, s[1], 0);
     let center = new THREE.Vector3();
     switch (d.shape) {
@@ -370,8 +412,18 @@ export class FieldScene implements SurgeryScene {
           const i = Math.min(radii.length - 2, Math.floor(x));
           return THREE.MathUtils.lerp(radii[i], radii[i + 1], x - i);
         };
-        const radius = d.caps ? (t: number) => rf(t) * capEnds(t, 0.08, 0.08) : rf;
-        add(varTube(curve, radius, { tubular: Math.max(24, pts.length * 16), radial: d.inside ? 24 : 14 }));
+        // ท่อเนื้อเยื่อจริงไม่กลมเรียบสม่ำเสมอ: รัศมีเปลี่ยนเล็กน้อยตามความยาว (ลำไส้ใหญ่เป็นกระเปาะ)
+        const len = curve.getLength();
+        const ph = Math.random() * 6.28;
+        const organic =
+          d.inside || kind === 'synthetic'
+            ? () => 1
+            : /colon|cecum|ลำไส้ใหญ่/.test(`${d.id} ${d.label ?? ''}`)
+              ? (t: number) => 1 + 0.1 * Math.abs(Math.sin((t * len) / (rf(t) * 1.1) + ph)) - 0.05
+              : (t: number) => 1 + 0.035 * Math.sin((t * len) / (rf(t) * 2.3) + ph) + 0.025 * Math.sin((t * len) / (rf(t) * 0.9) + ph * 2);
+        const radius = d.caps ? (t: number) => rf(t) * organic(t) * capEnds(t, 0.08, 0.08) : (t: number) => rf(t) * organic(t);
+        const tube = add(varTube(curve, radius, { tubular: THREE.MathUtils.clamp(Math.ceil(len / (rf(0.5) * 0.35)), 40, 220), radial: d.inside ? 24 : 18 }));
+        tube.geometry.userData.arcLength = len;
         center = curve.getPointAt(0.5);
         anchor = center.clone().add(new THREE.Vector3(0, rf(0.5) + 0.003 * this.unit, 0));
         if (d.hit) {
@@ -393,6 +445,15 @@ export class FieldScene implements SurgeryScene {
     if (d.hidden) group.visible = false;
     this.root.add(group);
     if (!d.noPick) this.pickables.push(...meshes);
+    // พิกัดลวดลายเนื้อเยื่อ (ติดไปกับวัตถุเมื่อขยับ)
+    group.updateMatrixWorld(true);
+    const visual = meshes.filter((m) => m.material === mat);
+    const box = new THREE.Box3();
+    for (const m of visual) box.expandByObject(m);
+    const origin = box.isEmpty() ? group.position.clone() : box.getCenter(new THREE.Vector3());
+    const axis = box.isEmpty() ? new THREE.Vector3(0, 0, 1) : longAxis(box);
+    (mat.userData.tissue.tAxis.value as THREE.Vector3).copy(axis);
+    for (const m of visual) bakeRest(m, origin, axis);
     const o: Obj = {
       def: d,
       group,
@@ -408,9 +469,27 @@ export class FieldScene implements SurgeryScene {
       inner,
       motion: this.motionOf(d),
       seed: Math.random() * Math.PI * 2,
+      dyn: new TissueDyn(mat.userData.tissue, this.tissueSize(d, s)),
+      spring: null,
+      surf: null,
     };
     this.objs.set(d.id, o);
-    if (d.model) {
+    // ฉากแบบ atlas: รูปทรงประกอบ (ภาพตัด ต่อมน้ำเหลือง ท่อ) ก็หาจุดที่มองเห็นได้จริงเหมือนโมเดล
+    if (this.def.atlas && !d.model && visual.length) {
+      const surf: THREE.Vector3[] = [];
+      const v = new THREE.Vector3();
+      inner.updateWorldMatrix(true, true);
+      for (const m of visual) {
+        const pos = m.geometry.getAttribute('position');
+        const step = Math.max(1, Math.floor(pos.count / 300));
+        for (let i = 0; i < pos.count; i += step) surf.push(inner.worldToLocal(v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld)).clone());
+      }
+      surf.sort((a, b) => b.y - a.y);
+      o.surf = surf.slice(0, Math.ceil(surf.length * 0.6));
+    }
+    this.setupWave(o, d.shape === 'tube' ? Math.max(...(d.radii ?? [d.r ?? 0.008])) : 0);
+    if (d.model && d.atlas && (d.atlasFrame || this.def.atlas)) this.loadAtlas(o, mat);
+    else if (d.model) {
       // โมเดลอวัยวะจริง (BodyParts3D) แทนรูปทรงพื้นฐาน — ถ้าโหลดไม่ได้ก็ใช้รูปทรงเดิมต่อ
       // โมเดลใช้แสดงผลอย่างเดียว การคลิกยังใช้รูปทรงเดิม (มองไม่เห็น) ขั้นตอนที่ทดสอบไว้จึงคลิกได้เหมือนเดิม
       // และโมเดลชิ้นใหญ่จะไม่บังการคลิกอวัยวะข้างเคียง
@@ -424,6 +503,19 @@ export class FieldScene implements SurgeryScene {
         const limit = depth - deepest - 0.003 * this.unit;
         if (limit > 0 && halfY > limit) model.scale.multiplyScalar(limit / halfY);
         model.position.add(o.centerLocal);
+        for (const m of meshes) if (m.material !== proxyMat) m.material = proxyMat;
+        inner.add(model);
+        model.updateMatrixWorld(true);
+        const mbox = new THREE.Box3().setFromObject(model);
+        const morigin = mbox.getCenter(new THREE.Vector3());
+        const maxis = longAxis(mbox);
+        (mat.userData.tissue.tAxis.value as THREE.Vector3).copy(maxis);
+        if (!d.inside) {
+          // โมเดลที่ลดโพลีกอนมีรูและสามเหลี่ยมกลับด้านบ้าง: วาดสองด้าน + ใช้ normal ชี้ออกเสมอ (ไม่เห็นเป็นจุดดำทะลุ)
+          mat.side = THREE.DoubleSide;
+          mat.defines = { ...mat.defines, TISSUE_NOFLIP: '' };
+          mat.needsUpdate = true;
+        }
         model.traverse((c) => {
           const m = c as THREE.Mesh;
           if (m.isMesh) {
@@ -431,22 +523,164 @@ export class FieldScene implements SurgeryScene {
             m.material = mat;
             m.castShadow = true;
             m.receiveShadow = true;
+            // เรขาคณิตใช้ร่วมกันในแคช → โคลนก่อนใส่พิกัดลวดลายของชิ้นนี้
+            bakeRest(m, morigin, maxis, { clone: true });
           }
         });
-        for (const m of meshes) if (m.material !== proxyMat) m.material = proxyMat;
-        inner.add(model);
+        if (o.motion === 'bowel') {
+          const ms = mbox.getSize(new THREE.Vector3());
+          o.dyn.waveAmp = Math.min(ms.x, ms.y, ms.z) * 0.035;
+          o.dyn.waveLen = Math.max(ms.x, ms.y, ms.z) * 0.45;
+        }
       });
     }
+  }
+
+  /**
+   * โมเดลวางตามพิกัดจริงของร่างกาย: ไม่ย่อ/ขยายแยกชิ้น ทุกชิ้นใช้จุดอ้างอิงเดียวกัน อวัยวะจึงต่อกันและขนาดสัมพันธ์กันถูกต้อง
+   * ผิวโมเดลเป็นตัวรับการคลิกเอง (แทนรูปทรงพื้นฐานที่มองไม่เห็น) จึงคีบได้ตรงตำแหน่งที่เห็น
+   */
+  private loadAtlas(o: Obj, mat: THREE.MeshPhysicalMaterial): void {
+    const d = o.def;
+    const A = d.atlasFrame ?? this.def.atlas!;
+    const k = A.scale ?? 1;
+    loadModelRaw(`${import.meta.env.BASE_URL}${d.model}`).then((model) => {
+      if (!model) return;
+      // จุด native p → โลก: O + R·(p − origin)·k  (O = ใต้กึ่งกลางหน้าต่าง ลึก depth)
+      o.inner.updateWorldMatrix(true, false);
+      const pivot = new THREE.Group();
+      pivot.position.copy(o.inner.worldToLocal(new THREE.Vector3(this.W.cx, this.Y0 - A.depth, this.W.cz)));
+      if (A.rot) pivot.rotation.set(...(A.rot.map((x) => THREE.MathUtils.degToRad(x)) as [number, number, number]));
+      model.scale.setScalar(k);
+      model.position.copy(new THREE.Vector3(...A.origin).sub(new THREE.Vector3(...(d.atlasShift ?? [0, 0, 0]))).multiplyScalar(-k));
+      pivot.add(model);
+      // รูปทรงพื้นฐาน/ตัวรับคลิกเดิมเลิกใช้ทั้งหมด
+      for (const m of o.meshes) {
+        m.visible = false;
+        const i = this.pickables.indexOf(m);
+        if (i >= 0) this.pickables.splice(i, 1);
+      }
+      o.inner.add(pivot);
+      pivot.updateMatrixWorld(true);
+      const box = new THREE.Box3().setFromObject(model);
+      const axis = longAxis(box);
+      mat.userData.tissue.tAxis.value.copy(axis);
+      mat.side = THREE.DoubleSide;
+      mat.defines = { ...mat.defines, TISSUE_NOFLIP: '' };
+      mat.needsUpdate = true;
+      const meshes: THREE.Mesh[] = [];
+      const surf: THREE.Vector3[] = [];
+      const v = new THREE.Vector3();
+      model.traverse((c) => {
+        const m = c as THREE.Mesh;
+        if (!m.isMesh) return;
+        m.userData.targetId = d.id;
+        m.material = mat;
+        m.castShadow = true;
+        m.receiveShadow = true;
+        bakeRest(m, box.getCenter(new THREE.Vector3()), axis, { clone: true });
+        meshes.push(m);
+        const pos = m.geometry.getAttribute('position');
+        const step = Math.max(1, Math.floor(pos.count / 500));
+        for (let i = 0; i < pos.count; i += step) surf.push(o.inner.worldToLocal(v.fromBufferAttribute(pos, i).applyMatrix4(m.matrixWorld)).clone());
+      });
+      o.meshes = meshes;
+      if (!d.noPick) this.pickables.push(...meshes);
+      o.centerLocal = o.inner.worldToLocal(box.getCenter(new THREE.Vector3()));
+      o.anchorLocal = o.centerLocal.clone().setY(o.inner.worldToLocal(box.max.clone()).y);
+      // ด้านหน้า (หันหากล้อง) ก่อน — แต่เก็บทั้งผิว เพราะกล้องส่องในช่องท้องมองเห็นผิวด้านล่าง/ด้านใน
+      surf.sort((a, b) => b.y - a.y);
+      o.surf = surf;
+      const size = box.getSize(new THREE.Vector3());
+      if (o.motion === 'bowel') {
+        o.dyn.waveAmp = Math.min(size.x, size.y, size.z) * 0.03;
+        o.dyn.waveLen = Math.max(size.x, size.y, size.z) * 0.35;
+      }
+      this.visAnchor.delete(d.id);
+    });
+  }
+
+  /**
+   * จุดบนผิววัตถุ atlas ที่กล้องมองเห็นได้จริง (ไม่ถูกอวัยวะอื่น/ผนังหน้าท้องบัง) ใกล้กลางส่วนที่เห็นที่สุด
+   * ใช้เป็นจุดคลิกของตัวเล่นอัตโนมัติ วงแหวนไฮไลต์ และป้ายชื่อ — คำนวณใหม่เมื่อมุมกล้องหรือฉากเปลี่ยน (ไม่เกิน 3 ครั้ง/วินาที)
+   */
+  private visibleAnchor(o: Obj): THREE.Vector3 | null {
+    if (!o.surf || !this.camera) return null;
+    const cam = this.camera.position;
+    const r = (x: number) => Math.round(x * 500);
+    const opens = this.layers.map((L) => r(L.layer.uniforms.uOpen.value)).join(',');
+    const gp = o.group.position;
+    const key = `${r(cam.x)},${r(cam.y)},${r(cam.z)}|${r(gp.x)},${r(gp.y)},${r(gp.z)}|${opens}|${o.group.visible}|${this.sceneVer}`;
+    const c = this.visAnchor.get(o.def.id);
+    if (c && (c.key === key || this.clock - c.t < 0.33 || this.clock - this.camMovedAt < 0.25)) return c.local;
+    const ray = new THREE.Raycaster();
+    const seen: THREE.Vector3[] = [];
+    const edge: THREE.Vector3[] = [];
+    const w = new THREE.Vector3();
+    const n = o.surf.length;
+    const step = Math.max(1, Math.floor(n / 50));
+    o.inner.updateWorldMatrix(true, false);
+    const center = o.centerLocal.clone().applyMatrix4(o.inner.matrixWorld);
+    for (let i = 0; i < n; i += step) {
+      // เล็งเข้าไปในเนื้อเล็กน้อย (ไม่เล็งจุดยอดซึ่งมักอยู่บนขอบเงาพอดี ขยับนิดเดียวก็พลาด) แล้วใช้จุดที่รังสีชนผิวจริง
+      w.copy(o.surf[i]).applyMatrix4(o.inner.matrixWorld).lerp(center, 0.06);
+      // เฉพาะจุดที่อยู่ในกรอบภาพ (อวัยวะใหญ่อย่างตับมีส่วนที่มองเห็นได้แต่อยู่นอกจอ)
+      const ndc = w.clone().project(this.camera);
+      if (ndc.z > 1 || Math.abs(ndc.x) > 0.95 || Math.abs(ndc.y) > 0.95) continue;
+      ray.set(cam, w.clone().sub(cam).normalize());
+      const hit = this.pick(ray);
+      if (hit.point && this.matches(o.def.id, hit) && hit.point.distanceTo(w) < 0.02 * this.unit) {
+        // จุดที่มองเห็นได้มั่นคง: เล็งเฉียงไปรอบ ๆ 1.5 มม. แล้วยังโดนวัตถุเดิม
+        const ok = [-1, 1].every((sx) => {
+          ray.set(cam, hit.point!.clone().add(new THREE.Vector3(sx, 0, -sx).multiplyScalar(0.001 * this.unit)).sub(cam).normalize());
+          return this.matches(o.def.id, this.pick(ray));
+        });
+        // ส่วนที่โผล่ให้เห็นแค่แถบบาง ๆ อาจไม่มีจุดที่ผ่านการเล็งเฉียง — เก็บไว้ใช้สำรอง
+        (ok ? seen : edge).push(o.inner.worldToLocal(hit.point.clone()));
+        if (seen.length >= 16) break;
+      }
+    }
+    let local = c?.local ?? o.anchorLocal;
+    if (!seen.length) seen.push(...edge);
+    if (seen.length) {
+      const mid = seen.reduce((a, b) => a.add(b), new THREE.Vector3()).divideScalar(seen.length);
+      local = seen.reduce((a, b) => (b.distanceToSquared(mid) < a.distanceToSquared(mid) ? b : a));
+    }
+    this.visAnchor.set(o.def.id, { key, local, t: this.clock });
+    return local;
+  }
+
+  /** ขนาดอ้างอิงของลวดลาย/การยุบตัว (เมตร) ≈ เส้นผ่านศูนย์กลางของวัตถุ */
+  private tissueSize(d: FieldObjectDef, s: [number, number, number] | V3): number {
+    const r = d.shape === 'tube' ? Math.max(...(d.radii ?? [d.r ?? 0.008])) * 2.6 : 2 * Math.max(s[0], s[1], s[2], d.r ?? 0);
+    return Math.max(r, 0.004 * this.unit);
+  }
+
+  /** ท่อ: คีบแล้วยกขึ้นมาทั้งช่วง และ (ลำไส้) คลื่นหดเป็นวงเคลื่อนไปตามความยาวท่อ */
+  private setupWave(o: Obj, tubeR: number): void {
+    if (tubeR) o.dyn.grabR = o.dyn.size * 1.3;
+    if (o.motion !== 'bowel' || !tubeR) return;
+    o.dyn.waveAmp = tubeR * 0.13;
+    o.dyn.waveLen = tubeR * 7;
+    o.dyn.waveSpeed = 1.4;
   }
 
   private anchorOf(id: string): THREE.Vector3 | null {
     const o = this.objs.get(id);
     if (o) {
       o.inner.updateWorldMatrix(true, false);
-      if (this.camera && this.camera.position.y < this.Y0) {
+      if (this.camera && this.camera.position.y < this.Y0 && !o.surf) {
         // มุมกล้องส่อง (อยู่ใต้ผิว): ใช้จุดกึ่งกลางวัตถุ ขยับเข้าหากล้องเล็กน้อย
         const c = o.centerLocal.clone().applyMatrix4(o.inner.matrixWorld);
         return c.lerp(this.camera.position, o.def.shape === 'tube' ? 0.04 : 0.15);
+      }
+      if (o.surf) {
+        // atlas: จุดบนผิวส่วนที่มองเห็น ยกเข้าหากล้องเล็กน้อย
+        const local = this.visibleAnchor(o);
+        if (local) {
+          const p = local.clone().applyMatrix4(o.inner.matrixWorld);
+          return this.camera ? p.add(this.camera.position.clone().sub(p).setLength(0.002 * this.unit)) : p;
+        }
       }
       if (o.def.shape === 'cylinder') {
         // ทรงกระบอกอาจวางนอน (กระดูก): ใช้จุดบนสุดของกล่องขอบเขต แทนปลายแกน
@@ -543,9 +777,25 @@ export class FieldScene implements SurgeryScene {
         const obj = this.objs.get(o.userData.targetId as string);
         if (obj && obj.mats[0].opacity < 0.12) continue;
       }
-      const id = (o.userData.targetId as string | undefined) ?? null;
+      let id = (o.userData.targetId as string | undefined) ?? null;
       if (!id) continue;
-      return { targetId: id, point: h.point.clone(), uv: uv ?? new THREE.Vector2(h.point.x - this.W.cx, h.point.z - this.W.cz) };
+      let point = h.point;
+      // โครงสร้างเล็กที่แนบผิวอวัยวะ (หลอดเลือดโคโรนารี เส้นประสาท) มักจมอยู่ใต้ผิวเล็กน้อย:
+      // ถ้าด้านหลังจุดที่โดนไม่เกิน 4 มม. มีส่วนย่อย (parent = อวัยวะนี้) ที่เล็กกว่ามาก ให้เลือกชิ้นเล็กนั้น
+      const big = this.objs.get(id);
+      if (big && !layerId) {
+        for (const h2 of hits) {
+          if (h2.distance <= h.distance || h2.distance - h.distance > 0.004 * this.unit) continue;
+          const id2 = h2.object.userData.targetId as string | undefined;
+          const small = id2 ? this.objs.get(id2) : undefined;
+          if (small && id2 !== id && small.def.parent === id && isVisibleDeep(h2.object) && small.mats[0].opacity >= 0.12 && small.dyn.size < big.dyn.size * 0.4) {
+            id = id2!;
+            point = h2.point;
+            break;
+          }
+        }
+      }
+      return { targetId: id, point: point.clone(), uv: uv ?? new THREE.Vector2(point.x - this.W.cx, point.z - this.W.cz) };
     }
     return { targetId: null, point: null, uv };
   }
@@ -561,7 +811,7 @@ export class FieldScene implements SurgeryScene {
     const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -y), new THREE.Vector3());
     if (!p) return null;
     const uv = new THREE.Vector2(p.x - this.W.cx, p.z - this.W.cz);
-    if (Math.abs(uv.x) > this.W.hw * 1.6 || Math.abs(uv.y) > this.W.hd * 1.6) return null;
+    if (Math.abs(uv.x) > this.W.hw * 2.5 || Math.abs(uv.y) > this.W.hd * 2.5) return null;
     return uv;
   }
 
@@ -711,31 +961,61 @@ export class FieldScene implements SurgeryScene {
       return;
     }
     const o = this.objs.get(target);
-    if (o && !o.def.draggable) {
-      // เนื้อเยื่อที่ไม่ได้หลุดออกมา: ยืดตามปากคีบเล็กน้อยแล้วดีดกลับเมื่อปล่อย
-      this.tug = { id: target, vec: delta.clone().clampLength(0, 0.008 * this.unit).multiplyScalar(0.45), lift: progress * 0.003 * this.unit };
+    if (!o) return;
+    this.dragging = target;
+    const grip = this.gripOf(o);
+    if (!o.def.draggable) {
+      // เนื้อเยื่อที่ไม่ได้หลุดออกมา: ผิวรอบปากคีบยืดเป็นกระโจมตามแรงดึง ทั้งก้อนขยับตามเพียงเล็กน้อย แล้วดีดกลับเมื่อปล่อย
+      const v = delta.clone().clampLength(0, 0.014 * this.unit).multiplyScalar(0.7);
+      o.dyn.grab(grip, new THREE.Vector3(v.x, (0.25 + progress) * 0.006 * this.unit, v.y));
+      this.tug = { id: target, vec: delta.clone().clampLength(0, 0.008 * this.unit).multiplyScalar(0.15), lift: progress * 0.001 * this.unit };
       return;
     }
-    if (!o) return;
+    // อวัยวะที่หยิบได้: ตามปากคีบแบบมีน้ำหนัก (สปริง) จุดที่คีบนำหน้า ส่วนอื่นห้อยตาม
     const d = delta.clone().clampLength(0, 0.05 * this.unit);
-    o.group.position.set(o.home.x + d.x, o.home.y + progress * 0.01 * this.unit, o.home.z + d.y);
+    const goal = new THREE.Vector3(o.home.x + d.x, o.home.y + progress * 0.01 * this.unit, o.home.z + d.y);
+    // จุดคีบเก็บเป็นพิกัดของวัตถุ จึงเลื่อนไปกับอวัยวะ
+    if (!o.spring) o.spring = { goal, vel: new THREE.Vector3(), grip: grip ? o.inner.worldToLocal(grip.clone()) : null };
+    else o.spring.goal.copy(goal);
+    o.dyn.grab(o.spring.grip ? o.inner.localToWorld(o.spring.grip.clone()) : grip, new THREE.Vector3(0, (0.3 + progress) * 0.004 * this.unit, 0));
+  }
+
+  /** จุดบนผิววัตถุที่เครื่องมือแตะไว้ (ถ้าไม่มีใช้จุดยึด) ในพิกัดโลก */
+  private gripOf(o: Obj): THREE.Vector3 | null {
+    const t = this.lastTouch;
+    if (t && (t.id === o.def.id || this.objs.get(t.id)?.def.parent === o.def.id)) return t.point.clone();
+    return this.anchorOf(o.def.id);
   }
 
   dragEnd(target: string, success: boolean): void {
     this.stretch = 0;
+    if (this.dragging === target) this.dragging = null;
+    const o = this.objs.get(target);
+    o?.dyn.grab(null);
     if (this.tug?.id === target) {
       this.tug = null;
-      this.touch(target);
+      this.touch(target, this.lastTouch?.point);
     }
-    const o = this.objs.get(target);
     if (!o || !o.def.draggable) return;
-    if (!success) this.tweenPos(o.group, o.home.clone(), 0.3);
-    else o.home.copy(o.group.position);
+    if (!o.spring) {
+      if (!success) this.tweenPos(o.group, o.home.clone(), 0.3);
+      else o.home.copy(o.group.position);
+      return;
+    }
+    // ปล่อย: วางลงตรงนั้น (สำเร็จ) หรือไหลกลับที่เดิมแบบสปริง
+    if (success) o.home.copy(o.spring.goal);
+    else o.spring.goal.copy(o.home);
   }
 
   rotateUpdate(target: string, deg: number): void {
     const o = this.objs.get(target);
     if (!o) return;
+    // ขั้นหมุนควบคุมวัตถุนี้อยู่ — การคีบยกไม่แย่ง
+    this.dragging = target;
+    if (o.spring) {
+      o.spring = null;
+      o.group.position.copy(o.home);
+    }
     const axis = o.def.axis ?? 'y';
     o.group.rotation.copy(o.homeRot);
     o.group.rotation[axis] = o.homeRot[axis] + THREE.MathUtils.degToRad(deg);
@@ -826,9 +1106,16 @@ export class FieldScene implements SurgeryScene {
   holdFx(target: string, active: boolean): void {
     this.smokeAt = active ? this.anchorOf(target) : null;
     this.pressing = active ? target : null;
+    // กดค้าง: ผิวบุ๋มลงตรงปลายเครื่องมือ ตามทิศที่มองลงไป
+    const o = this.objs.get(target);
+    if (!o) return;
+    const p = active ? this.gripOf(o) : null;
+    const dir = p && this.camera ? p.clone().sub(this.camera.position).normalize() : undefined;
+    o.dyn.press(p, dir);
   }
 
   effect(name: string): void {
+    this.sceneVer++;
     const parts = name.split(':');
     const [cmd, arg] = parts;
     const o = this.objs.get(arg);
@@ -853,6 +1140,7 @@ export class FieldScene implements SurgeryScene {
       }
       case 'move':
         if (o) {
+          o.spring = null;
           const to = o.home.clone().add(new THREE.Vector3(Number(parts[2] || 0), -Number(parts[4] || 0), Number(parts[3] || 0)));
           o.home.copy(to);
           this.tweenPos(o.group, to, 0.7);
@@ -909,6 +1197,7 @@ export class FieldScene implements SurgeryScene {
         break;
       case 'remove':
         if (o) {
+          o.spring = null;
           const to = o.group.position.clone().add(new THREE.Vector3(0.02, 0.2, 0.12).multiplyScalar(this.unit));
           this.tweenPos(o.group, to, 0.9, () => (o.group.visible = false));
         }
@@ -946,6 +1235,35 @@ export class FieldScene implements SurgeryScene {
       case 'dress':
         this.dressing.visible = true;
         break;
+      case 'spin': {
+        // spin:<แกน>:<องศา>:<ความลึกจุดหมุน> — หมุนวัตถุทั้งชุดรอบจุดเดียวกันใต้กึ่งกลางหน้าต่าง
+        // (เช่น ยกสมองออกมาวางตะแคงให้เห็นภาพตัดแนวกลาง) ส่วนประกอบที่มี parent หมุนตามชิ้นแม่เอง
+        const axis = new THREE.Vector3(arg === 'x' ? 1 : 0, arg === 'y' ? 1 : 0, arg === 'z' ? 1 : 0);
+        const ang = THREE.MathUtils.degToRad(Number(parts[2] ?? 0));
+        const pivot = new THREE.Vector3(this.W.cx, this.Y0 - Number(parts[3] ?? this.def.atlas?.depth ?? 0), this.W.cz);
+        const tops = [...this.objs.values()].filter((x) => x.group.parent === this.root);
+        const from = tops.map((x) => ({ x, p: x.group.position.clone(), q: x.group.quaternion.clone() }));
+        const step = (k: number) => {
+          const q = new THREE.Quaternion().setFromAxisAngle(axis, ang * k);
+          for (const f of from) {
+            f.x.group.position.copy(f.p).sub(pivot).applyQuaternion(q).add(pivot);
+            f.x.group.quaternion.copy(q).multiply(f.q);
+          }
+        };
+        this.anims.push({
+          t: 0,
+          dur: 1.4,
+          step,
+          done: () => {
+            for (const f of from) {
+              f.x.home.copy(f.x.group.position);
+              f.x.homeRot.copy(f.x.group.rotation);
+              f.x.spring = null;
+            }
+          },
+        });
+        break;
+      }
       case 'trail':
         this.clearTrail();
         break;
@@ -969,12 +1287,18 @@ export class FieldScene implements SurgeryScene {
     this.rr = THREE.MathUtils.clamp(p.rr, 0, 50);
   }
 
-  touch(targetId: string | null): void {
+  touch(targetId: string | null, point?: THREE.Vector3 | null): void {
     if (!targetId) return;
     const o = this.objs.get(targetId);
     if (!o) return;
     // ส่วนย่อยของอวัยวะ (parent) ให้ทั้งอวัยวะกระเพื่อม
     this.jiggles.set(o.def.parent && this.objs.has(o.def.parent) ? o.def.parent : targetId, 0);
+    // คลื่นกระเพื่อมวิ่งออกจากจุดที่แตะ
+    const p = point ?? this.anchorOf(targetId);
+    if (p) {
+      this.lastTouch = { id: targetId, point: p.clone() };
+      o.dyn.ripple(p);
+    }
   }
 
   /** หัวใจเต้นตามชีพจร ปอดพองตามการหายใจ ลำไส้บีบตัว อวัยวะขยับตามกะบังลม และเนื้อเยื่อตอบสนองต่อเครื่องมือ */
@@ -1010,10 +1334,11 @@ export class FieldScene implements SurgeryScene {
           O.y += 0.0015 * u * breath;
         }
         if (m === 'bowel') {
-          const w = Math.sin(t * 1.25 + o.seed);
-          S.x *= 1 + 0.025 * w;
-          S.z *= 1 - 0.02 * w;
-          O.x += 0.0005 * u * Math.sin(t * 0.6 + o.seed);
+          // คลื่นบีบตัวจริงอยู่ในเชดเดอร์ (dyn.wave) ที่นี่เหลือแค่การเลื่อนไหลช้า ๆ ของขดลำไส้
+          const w = Math.sin(t * 0.9 + o.seed);
+          S.x *= 1 + 0.008 * w;
+          S.z *= 1 - 0.006 * w;
+          O.x += 0.0004 * u * Math.sin(t * 0.6 + o.seed);
         }
         if (m !== 'none') {
           // กะบังลมเลื่อนลงเมื่อหายใจเข้า ดันอวัยวะไปทางเท้าเล็กน้อย
@@ -1026,26 +1351,99 @@ export class FieldScene implements SurgeryScene {
       if (jt !== undefined) {
         this.jiggles.set(o.def.id, jt + dt);
         const a = Math.exp(-jt * 6) * Math.sin(jt * 30);
-        S.y *= 1 - 0.05 * a;
-        S.x *= 1 + 0.025 * a;
-        S.z *= 1 + 0.025 * a;
+        S.y *= 1 - 0.02 * a;
+        S.x *= 1 + 0.01 * a;
+        S.z *= 1 + 0.01 * a;
       }
-      if (this.pressing === o.def.id) {
-        S.y *= 0.95;
-        O.x += 0.00025 * u * Math.sin(t * 55);
-      }
+      if (this.pressing === o.def.id) S.y *= 0.985;
       if (this.tug?.id === o.def.id) {
         O.x += this.tug.vec.x;
         O.z += this.tug.vec.y;
         O.y += this.tug.lift;
         S.y *= 1 + this.tug.lift / (0.01 * u);
       }
+      o.dyn.update(dt, t, this.live && o.motion === 'bowel');
       // ขยาย/หดรอบจุดกลางวัตถุ และแปลงการเลื่อนจากแกนโลกเป็นแกนของวัตถุ
       const cl = o.centerLocal;
       q.copy(o.group.quaternion).invert();
       O.applyQuaternion(q).divideScalar(o.group.scale.x || 1);
       o.inner.scale.copy(S);
       o.inner.position.set(cl.x - cl.x * S.x + O.x, cl.y - cl.y * S.y + O.y, cl.z - cl.z * S.z + O.z);
+    }
+  }
+
+  gripStart(targetId: string, point: THREE.Vector3): boolean {
+    const o = this.objs.get(targetId);
+    if (!o || !o.group.visible || o.def.scrub || o.def.blood || o.def.inside || o.def.shape === 'sheet' || o.def.shape === 'disc' || o.def.shape === 'ring') return false;
+    if ((o.def.metal ?? 0) >= 0.5 || this.layerMap.has(targetId)) return false;
+    o.inner.updateWorldMatrix(true, false);
+    this.grip = { o, local: o.inner.worldToLocal(point.clone()), start: point.clone(), t: 0 };
+    o.dyn.grab(point, new THREE.Vector3(0, 0.003 * this.unit, 0));
+    return true;
+  }
+
+  /**
+   * ลากขณะคีบ: อวัยวะยกขึ้นและเลื่อนตามปากคีบ — ชิ้นเล็กติดตามมาเกือบทั้งชิ้น ชิ้นใหญ่ (ตับ) ขยับได้น้อย
+   * แต่ผิวตรงที่คีบยืดตามเป็นกระโจม; ระยะจำกัด เพราะอวัยวะยังมีเยื่อยึดอยู่
+   */
+  gripMove(ray: THREE.Raycaster): void {
+    const g = this.grip;
+    if (!g || this.dragging === g.o.def.id) return;
+    const o = g.o;
+    // คลิกเฉย ๆ ไม่ยก — ยกขึ้นตามระยะที่ลากจริง (สูงสุด 1.4 ซม.)
+    const p0 = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -g.start.y), new THREE.Vector3());
+    if (!p0) return;
+    const moved = Math.hypot(p0.x - g.start.x, p0.z - g.start.z);
+    if (moved < 0.003 * this.unit) return;
+    const lift = Math.min(0.014 * this.unit, moved * 1.2);
+    const p = ray.ray.intersectPlane(new THREE.Plane(new THREE.Vector3(0, 1, 0), -(g.start.y + lift)), new THREE.Vector3());
+    if (!p) return;
+    const lab = !this.live;
+    const off = p.sub(g.start);
+    const flat = new THREE.Vector2(off.x, off.z).clampLength(0, (lab ? 0.05 : 0.025) * this.unit);
+    const size = o.dyn.size;
+    const follow = THREE.MathUtils.clamp((0.035 * this.unit) / size, 0.3, 1);
+    const D = new THREE.Vector3(flat.x, lift, flat.y);
+    if (!o.spring) o.spring = { goal: o.home.clone(), vel: new THREE.Vector3(), grip: null };
+    o.spring.goal.copy(o.home).addScaledVector(D, follow);
+    o.dyn.grab(o.inner.localToWorld(g.local.clone()), D.clone().multiplyScalar(1 - follow).add(new THREE.Vector3(0, 0.002 * this.unit, 0)));
+  }
+
+  gripEnd(): void {
+    const g = this.grip;
+    this.grip = null;
+    if (!g) return;
+    g.o.dyn.grab(null);
+    const rotating = this.dragging === g.o.def.id && !g.o.def.draggable;
+    if (rotating) this.dragging = null;
+    if (g.o.spring && this.dragging !== g.o.def.id && !rotating) g.o.spring.goal.copy(g.o.home);
+    this.touch(g.o.def.id, g.o.inner.localToWorld(g.local.clone()));
+  }
+
+  gripPoint(): THREE.Vector3 | null {
+    const g = this.grip;
+    return g ? g.o.inner.localToWorld(g.local.clone()) : null;
+  }
+
+  /** อวัยวะที่กำลังถูกลาก: เร่งเข้าหาเป้าแบบสปริงหน่วง (มีน้ำหนัก แกว่งเล็กน้อยเมื่อหยุด) และเอียงตามทิศที่ลาก */
+  private updateSprings(dt: number): void {
+    const h = Math.min(dt, 1 / 30);
+    for (const o of this.objs.values()) {
+      const sp = o.spring;
+      if (!sp) continue;
+      const k = 150;
+      const lag = sp.goal.clone().sub(o.group.position);
+      sp.vel.addScaledVector(lag, k * h).multiplyScalar(Math.max(0, 1 - 2 * Math.sqrt(k) * 0.42 * h));
+      o.group.position.addScaledVector(sp.vel, h);
+      // ปลายที่คีบนำหน้า ตัวอวัยวะยืดตามทิศที่ถูกลาก
+      if (o.dyn.busy && sp.grip) o.dyn.grab(o.inner.localToWorld(sp.grip.clone()), lag.clone().multiplyScalar(0.6).add(new THREE.Vector3(0, 0.003 * this.unit, 0)));
+      o.group.rotation.z = o.homeRot.z - THREE.MathUtils.clamp(sp.vel.x / this.unit, -2, 2) * 0.05;
+      o.group.rotation.x = o.homeRot.x + THREE.MathUtils.clamp(sp.vel.z / this.unit, -2, 2) * 0.05;
+      if (lag.length() < 1e-5 * this.unit && sp.vel.length() < 1e-4 * this.unit) {
+        o.group.position.copy(sp.goal);
+        o.group.rotation.copy(o.homeRot);
+        o.spring = null;
+      }
     }
   }
 
@@ -1121,10 +1519,16 @@ export class FieldScene implements SurgeryScene {
 
   update(dt: number, t: number, camera: THREE.Camera): void {
     this.camera = camera;
+    this.clock = t;
+    if (camera.position.distanceToSquared(this.lastCam) > 1e-8) {
+      this.camMovedAt = t;
+      this.lastCam.copy(camera.position);
+    }
     this.layers.forEach((L, i) => {
       const goal = L.layer.openTarget + (i === 0 ? this.stretch : 0);
       L.layer.uniforms.uOpen.value += (goal - L.layer.uniforms.uOpen.value) * Math.min(1, dt * 4.5);
     });
+    for (const w of this.walls) w.update();
     for (const s of this.stitches.children) {
       const idx = this.layers.findIndex((d) => d.layer.id === s.userData.layer);
       const above = this.layers[idx - 1];
@@ -1134,6 +1538,7 @@ export class FieldScene implements SurgeryScene {
     for (const o of this.objs.values()) {
       if (o.def.blood && o.group.visible && this.bleedRate > 0) this.setVolume(o, Math.max(o.volume, 0.08) + this.bleedRate * 0.011 * dt);
     }
+    this.updateSprings(dt);
     this.animateLife(dt, t);
 
     if (this.highlight) {
@@ -1193,6 +1598,7 @@ export class FieldScene implements SurgeryScene {
       const k = an.t < 0.5 ? 2 * an.t * an.t : 1 - (-2 * an.t + 2) ** 2 / 2;
       an.step(k);
       if (an.t >= 1) {
+        this.sceneVer++;
         an.done?.();
         return false;
       }

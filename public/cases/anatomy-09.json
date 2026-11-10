@@ -37,8 +37,8 @@
     0.3
    ],
    "window": {
-    "hw": 0.08,
-    "hd": 0.075
+    "hw": 0.095,
+    "hd": 0.088
    },
    "drapeColor": "#5b7fa6",
    "opening": "tray",
@@ -47,7 +47,7 @@
      "circle": [
       0.0,
       0.0,
-      0.064
+      0.078
      ]
     }
    },
@@ -63,7 +63,7 @@
    ],
    "cavity": {
     "color": "#3f4d5a",
-    "depth": 0.045
+    "depth": 0.1
    },
    "objects": [
     {
@@ -71,242 +71,269 @@
      "label": "มดลูก",
      "shape": "ellipsoid",
      "at": [
-      -0.033,
-      -0.0161,
-      0.026
+      -0.0358,
+      -0.0165,
+      0.0364
      ],
      "size": [
-      0.0154,
-      0.0112,
-      0.0182
+      0.0113,
+      0.0116,
+      0.015
      ],
      "color": "#d9a09a",
-     "rough": 0.45
+     "model": "models/organs/uterus_body.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "rough": 0.45,
+     "motion": "none"
     },
     {
      "id": "endometrium",
      "label": "เยื่อบุโพรงมดลูก",
      "shape": "ellipsoid",
      "at": [
-      -0.033,
-      -0.0157,
-      0.025
+      -0.0358,
+      -0.018,
+      0.0352
      ],
      "size": [
-      0.0077,
-      0.0056,
-      0.0105
+      0.005,
+      0.0017,
+      0.0084
      ],
      "color": "#b8404e",
      "hidden": true,
-     "hit": 0.0056
+     "hit": 0.004,
+     "motion": "none"
     },
     {
      "id": "tube_1",
      "label": "ท่อนำไข่",
-     "shape": "tube",
-     "points": [
-      [
-       -0.043,
-       -0.0233,
-       0.024
-      ],
-      [
-       -0.052,
-       -0.0263,
-       0.024
-      ],
-      [
-       -0.059,
-       -0.0213,
-       0.024
-      ],
-      [
-       -0.061,
-       -0.0127,
-       0.025
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0567,
+      -0.0179,
+      0.0388
      ],
-     "r": 0.0024,
+     "size": [
+      0.0162,
+      0.0104,
+      0.0103
+     ],
      "color": "#e0a8a0",
-     "hit": 0.0056
+     "model": "models/organs/tube_r.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "motion": "none"
     },
     {
      "id": "tube_2",
      "label": "ท่อนำไข่",
-     "shape": "tube",
-     "points": [
-      [
-       -0.023,
-       -0.0233,
-       0.024
-      ],
-      [
-       -0.014,
-       -0.0263,
-       0.024
-      ],
-      [
-       -0.007,
-       -0.0213,
-       0.024
-      ],
-      [
-       -0.005,
-       -0.0127,
-       0.025
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0147,
+      -0.0179,
+      0.0388
      ],
-     "r": 0.0024,
+     "size": [
+      0.0162,
+      0.0104,
+      0.0103
+     ],
      "color": "#e0a8a0",
-     "hit": 0.0056
+     "model": "models/organs/tube_l.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "motion": "none"
     },
     {
      "id": "ovary_1",
      "label": "รังไข่",
      "shape": "ellipsoid",
      "at": [
-      -0.056,
-      -0.0031,
-      0.026
+      -0.0549,
+      -0.0158,
+      0.0406
      ],
      "size": [
-      0.0077,
-      0.0049,
-      0.0059
+      0.0122,
+      0.0066,
+      0.0068
      ],
      "color": "#ecdcd0",
-     "rough": 0.5
+     "model": "models/organs/ovary_r.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "rough": 0.5,
+     "motion": "none"
     },
     {
      "id": "ovary_2",
      "label": "รังไข่",
      "shape": "ellipsoid",
      "at": [
-      -0.01,
-      -0.0031,
-      0.026
+      -0.0165,
+      -0.0158,
+      0.0406
      ],
      "size": [
-      0.0077,
-      0.0049,
-      0.0059
+      0.0122,
+      0.0066,
+      0.0068
      ],
      "color": "#ecdcd0",
-     "rough": 0.5
+     "model": "models/organs/ovary_l.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "rough": 0.5,
+     "motion": "none"
     },
     {
      "id": "cervix",
      "label": "ปากมดลูกและช่องคลอด",
-     "shape": "tube",
-     "points": [
-      [
-       -0.033,
-       -0.0031,
-       0.026
-      ],
-      [
-       -0.033,
-       0.0099,
-       0.026
-      ],
-      [
-       -0.033,
-       0.0239,
-       0.026
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0357,
+      0.0149,
+      0.0432
      ],
-     "radii": [
-      0.0059,
-      0.0053,
-      0.0048
+     "size": [
+      0.0064,
+      0.0085,
+      0.0272
      ],
      "color": "#d6a4a4",
-     "hit": 0.007
+     "model": "models/organs/cervix_vagina.glb",
+     "atlas": true,
+     "atlasFrame": {
+      "origin": [
+       0.085,
+       0.1,
+       -0.82
+      ],
+      "depth": 0.028,
+      "scale": 0.42
+     },
+     "motion": "none"
     },
     {
      "id": "bladder",
      "label": "กระเพาะปัสสาวะ",
      "shape": "ellipsoid",
      "at": [
-      0.03,
-      -0.0381,
-      0.026
+      0.0504,
+      -0.026,
+      0.0314
      ],
      "size": [
-      0.0126,
-      0.0098,
-      0.0112
+      0.0228,
+      0.0199,
+      0.0142
      ],
      "color": "#e6c0b4",
+     "model": "models/organs/bladder.glb",
+     "atlas": true,
      "rough": 0.45,
-     "model": "models/organs/bladder.glb"
+     "motion": "none"
     },
     {
      "id": "prostate",
      "label": "ต่อมลูกหมาก",
      "shape": "ellipsoid",
      "at": [
-      0.03,
-      -0.0204,
-      0.027
+      0.0583,
+      -0.0074,
+      0.0314
      ],
      "size": [
-      0.0077,
-      0.007,
-      0.007
+      0.0087,
+      0.0095,
+      0.0062
      ],
      "color": "#c9a08a",
+     "model": "models/organs/prostate.glb",
+     "atlas": true,
      "rough": 0.5,
-     "model": "models/organs/prostate.glb"
+     "motion": "none"
     },
     {
      "id": "urethra",
      "label": "ท่อปัสสาวะ",
-     "shape": "tube",
-     "points": [
-      [
-       0.03,
-       -0.0129,
-       0.023
-      ],
-      [
-       0.03,
-       0.0027,
-       0.024
-      ],
-      [
-       0.029,
-       0.0247,
-       0.024
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      0.0358,
+      0.008,
+      0.0314
      ],
-     "r": 0.0022,
+     "size": [
+      0.0336,
+      0.0044,
+      0.0315
+     ],
      "color": "#eadacb",
-     "hit": 0.0056
+     "model": "models/organs/urethra.glb",
+     "atlas": true,
+     "motion": "none"
     },
     {
      "id": "vesicle",
      "label": "ถุงน้ำเลี้ยงอสุจิ",
      "shape": "ellipsoid",
      "at": [
-      0.047,
-      -0.0468,
-      0.028
+      0.0683,
+      -0.0196,
+      0.0314
      ],
      "size": [
-      0.0059,
-      0.0042,
-      0.0084
-     ],
-     "rot": [
-      0,
-      25,
-      0
+      0.0056,
+      0.0192,
+      0.0082
      ],
      "color": "#d8c49a",
+     "model": "models/organs/seminal_vesicles.glb",
+     "atlas": true,
      "rough": 0.5,
-     "model": "models/organs/seminal_vesicle.glb"
+     "motion": "none"
     },
     {
      "id": "vas",
@@ -314,70 +341,95 @@
      "shape": "tube",
      "points": [
       [
-       0.055,
-       0.0147,
-       0.024
+       0.0198,
+       0.0308,
+       0.0167
       ],
       [
-       0.057,
-       -0.0029,
-       0.023
+       0.0159,
+       0.0044,
+       0.0145
       ],
       [
-       0.054,
-       -0.0229,
-       0.023
+       0.0242,
+       -0.0275,
+       0.0062
       ],
       [
-       0.046,
-       -0.0333,
-       0.024
+       0.0462,
+       -0.0385,
+       0.009
       ],
       [
-       0.037,
-       -0.0253,
-       0.024
+       0.0627,
+       -0.0264,
+       0.0178
+      ],
+      [
+       0.0655,
+       -0.0176,
+       0.0244
       ]
      ],
-     "r": 0.0017,
+     "r": 0.0012,
      "color": "#f0e6d0",
-     "hit": 0.0049
+     "hit": 0.004,
+     "motion": "none"
     },
     {
      "id": "testis",
      "label": "อัณฑะ",
      "shape": "ellipsoid",
      "at": [
-      0.046,
-      0.0219,
-      0.026
+      0.0202,
+      0.035,
+      0.0319
      ],
      "size": [
-      0.0091,
-      0.0084,
-      0.0112
+      0.0063,
+      0.0162,
+      0.0081
      ],
      "color": "#e8c4c0",
-     "rough": 0.45
+     "model": "models/organs/testes.glb",
+     "atlas": true,
+     "rough": 0.45,
+     "motion": "none"
     },
     {
      "id": "epididymis",
      "label": "หลอดเก็บอสุจิ (เอพิดิดิมิส)",
      "shape": "ellipsoid",
      "at": [
-      0.0535,
-      0.0213,
-      0.025
+      0.0217,
+      0.0306,
+      0.0318
      ],
      "size": [
-      0.0025,
-      0.0036,
-      0.0101
+      0.0057,
+      0.0139,
+      0.0071
      ],
      "color": "#c99a8a",
-     "hit": 0.0042
+     "model": "models/organs/epididymis.glb",
+     "atlas": true,
+     "motion": "none"
     }
-   ]
+   ],
+   "atlas": {
+    "origin": [
+     0.0,
+     0.189,
+     -0.768
+    ],
+    "depth": 0.031,
+    "scale": 0.55,
+    "rot": [
+     0,
+     0,
+     90
+    ]
+   }
   },
   "steps": [
    {
@@ -387,7 +439,7 @@
     "action": "click",
     "target": "cover",
     "onSuccess": [
-     "open:cover:0.066"
+     "open:cover:0.08"
     ],
     "learn": "บนถาดมีแบบจำลองอวัยวะสืบพันธุ์ภายใน 2 ชุด — ด้านซ้ายเป็นของเพศหญิง ด้านขวาเป็นของเพศชาย (แสดงเฉพาะอวัยวะภายในและท่อทางเดิน)"
    },

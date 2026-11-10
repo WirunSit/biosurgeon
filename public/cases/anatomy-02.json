@@ -37,8 +37,8 @@
     -0.33
    ],
    "window": {
-    "hw": 0.09,
-    "hd": 0.1
+    "hw": 0.15,
+    "hd": 0.18
    },
    "drapeColor": "#5b7fa6",
    "opening": "incision",
@@ -47,11 +47,11 @@
      "points": [
       [
        0.0,
-       -0.085
+       -0.16
       ],
       [
        0.0,
-       0.085
+       0.16
       ]
      ]
     }
@@ -92,100 +92,81 @@
    ],
    "cavity": {
     "color": "#5a2a2a",
-    "depth": 0.075
+    "depth": 0.17
    },
    "objects": [
     {
      "id": "trachea",
      "label": "หลอดลม",
-     "shape": "tube",
-     "points": [
-      [
-       0.0,
-       -0.1039,
-       0.036
-      ],
-      [
-       0.0,
-       -0.0827,
-       0.038
-      ],
-      [
-       0.0,
-       -0.0663,
-       0.042
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.0006,
+      -0.103,
+      0.1339
      ],
-     "r": 0.0058,
+     "size": [
+      0.0128,
+      0.0213,
+      0.0589
+     ],
      "color": "#e6dccf",
-     "rough": 0.5,
-     "hit": 0.007
+     "model": "models/organs/trachea.glb",
+     "atlas": true,
+     "rough": 0.5
     },
     {
      "id": "bronchus_R",
      "label": "หลอดลมแขนงขวา",
-     "shape": "tube",
-     "points": [
-      [
-       0.0,
-       -0.0663,
-       0.042
-      ],
-      [
-       -0.011,
-       -0.0574,
-       0.045
-      ],
-      [
-       -0.02,
-       -0.051,
-       0.049
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      -0.06,
+      0.0079,
+      0.133
      ],
-     "r": 0.0042,
+     "size": [
+      0.0598,
+      0.0742,
+      0.1218
+     ],
      "color": "#e6dccf",
-     "hit": 0.006
+     "model": "models/organs/bronchus_r.glb",
+     "atlas": true
     },
     {
      "id": "bronchus_L",
      "label": "หลอดลมแขนงซ้าย",
-     "shape": "tube",
-     "points": [
-      [
-       0.0,
-       -0.0663,
-       0.042
-      ],
-      [
-       0.013,
-       -0.0624,
-       0.045
-      ],
-      [
-       0.024,
-       -0.059,
-       0.049
-      ]
+     "shape": "ellipsoid",
+     "at": [
+      0.0619,
+      0.01,
+      0.1289
      ],
-     "r": 0.0035,
+     "size": [
+      0.0623,
+      0.0784,
+      0.121
+     ],
      "color": "#e6dccf",
-     "hit": 0.006
+     "model": "models/organs/bronchus_l.glb",
+     "atlas": true
     },
     {
      "id": "R_upper",
      "label": "ปอดขวากลีบบน",
      "shape": "ellipsoid",
      "at": [
-      -0.038,
-      -0.0461,
-      0.052
+      -0.0616,
+      -0.0497,
+      0.1274
      ],
      "size": [
-      0.016,
-      0.014,
-      0.02
+      0.0546,
+      0.0769,
+      0.0678
      ],
      "color": "#eaa3a3",
+     "model": "models/organs/lung_r_upper.glb",
+     "atlas": true,
      "rough": 0.6
     },
     {
@@ -193,33 +174,38 @@
      "label": "ปอดขวากลีบกลาง",
      "shape": "ellipsoid",
      "at": [
-      -0.04,
-      -0.0154,
-      0.05
+      -0.0635,
+      0.0413,
+      0.1083
      ],
      "size": [
-      0.015,
-      0.013,
-      0.012
+      0.0579,
+      0.0736,
+      0.053
      ],
      "color": "#de9090",
-     "rough": 0.6
+     "model": "models/organs/lung_r_middle.glb",
+     "atlas": true,
+     "rough": 0.6,
+     "draggable": true
     },
     {
      "id": "R_lower",
      "label": "ปอดขวากลีบล่าง",
      "shape": "ellipsoid",
      "at": [
-      -0.037,
-      0.0119,
-      0.052
+      -0.0647,
+      0.048,
+      0.1284
      ],
      "size": [
-      0.016,
-      0.014,
-      0.019
+      0.0631,
+      0.087,
+      0.0896
      ],
      "color": "#eeb0ab",
+     "model": "models/organs/lung_r_lower.glb",
+     "atlas": true,
      "rough": 0.6
     },
     {
@@ -227,16 +213,18 @@
      "label": "ปอดซ้ายกลีบบน",
      "shape": "ellipsoid",
      "at": [
-      0.04,
-      -0.0381,
-      0.052
+      0.0622,
+      -0.0148,
+      0.1191
      ],
      "size": [
-      0.016,
-      0.014,
-      0.025
+      0.0569,
+      0.0839,
+      0.1039
      ],
      "color": "#eaa3a3",
+     "model": "models/organs/lung_l_upper.glb",
+     "atlas": true,
      "rough": 0.6
     },
     {
@@ -244,16 +232,18 @@
      "label": "ปอดซ้ายกลีบล่าง",
      "shape": "ellipsoid",
      "at": [
-      0.041,
-      0.0099,
-      0.052
+      0.0707,
+      0.0435,
+      0.1258
      ],
      "size": [
-      0.015,
-      0.014,
-      0.02
+      0.0546,
+      0.0888,
+      0.0969
      ],
      "color": "#eeb0ab",
+     "model": "models/organs/lung_l_lower.glb",
+     "atlas": true,
      "rough": 0.6
     },
     {
@@ -261,38 +251,49 @@
      "label": "หัวใจ (ในเยื่อหุ้มหัวใจ)",
      "shape": "ellipsoid",
      "at": [
-      0.006,
-      -0.0109,
-      0.054
+      0.0214,
+      0.0177,
+      0.1101
      ],
      "size": [
-      0.016,
-      0.013,
-      0.022
+      0.0577,
+      0.0547,
+      0.0528
      ],
      "color": "#b5414a",
+     "model": "models/organs/heart.glb",
+     "atlas": true,
      "rough": 0.4,
-     "pulse": true,
-     "model": "models/organs/heart.glb"
+     "pulse": true
     },
     {
      "id": "diaphragm",
      "label": "กะบังลม",
      "shape": "ellipsoid",
      "at": [
-      0.0,
-      0.0368,
-      0.06
+      -0.0008,
+      0.1542,
+      0.1174
      ],
      "size": [
-      0.05,
-      0.005,
-      0.01
+      0.1212,
+      0.0819,
+      0.1084
      ],
      "color": "#b0524a",
+     "model": "models/organs/diaphragm.glb",
+     "atlas": true,
      "rough": 0.5
     }
-   ]
+   ],
+   "atlas": {
+    "origin": [
+     0.0,
+     0.2,
+     -1.255
+    ],
+    "depth": 0.032
+   }
   },
   "steps": [
    {
@@ -314,8 +315,8 @@
     "target": "incision",
     "holdSec": 1.0,
     "onSuccess": [
-     "open:skin:0.07",
-     "open:muscle:0.067",
+     "open:skin:0.125",
+     "open:muscle:0.121",
      "label:bone"
     ]
    },
@@ -341,7 +342,7 @@
     "target": "incision",
     "minDrag": 0.012,
     "onSuccess": [
-     "open:bone:0.063",
+     "open:bone:0.116",
      "label:pleura"
     ]
    },
@@ -352,7 +353,7 @@
     "action": "click",
     "target": "pleura",
     "onSuccess": [
-     "open:pleura:0.058"
+     "open:pleura:0.11"
     ],
     "learn": "เยื่อหุ้มปอดมี 2 ชั้น ระหว่างชั้นมีของเหลวบาง ๆ และความดันต่ำกว่าบรรยากาศ ปอดจึงพองตามทรวงอกได้ (ถ้ามีลมรั่วเข้าไป ปอดจะแฟบ — เคส 2.1)"
    },
@@ -369,24 +370,72 @@
    },
    {
     "id": "bronchi",
-    "say": "ระบุหลอดลมแขนงขวา แล้วหลอดลมแขนงซ้าย",
+    "say": "ระบุหลอดลมแขนงขวา แล้วหลอดลมแขนงซ้าย (หุ่นจำลองทำปอดให้โปร่งใสชั่วคราว จะเห็นหลอดลมแตกแขนงเข้าไปในปอด)",
     "tool": "forceps",
     "action": "sequence",
     "targets": [
      "bronchus_R",
      "bronchus_L"
     ],
+    "onStart": [
+     "opacity:R_upper:0.1",
+     "opacity:R_middle:0.1",
+     "opacity:R_lower:0.1",
+     "opacity:L_upper:0.1",
+     "opacity:L_lower:0.1",
+     "opacity:heart:0.1"
+    ],
+    "onSuccess": [
+     "opacity:R_upper:1",
+     "opacity:R_middle:1",
+     "opacity:R_lower:1",
+     "opacity:L_upper:1",
+     "opacity:L_lower:1",
+     "opacity:heart:1"
+    ],
     "learn": "หลอดลมแขนงขวาสั้น กว้าง และชันกว่าข้างซ้าย สิ่งแปลกปลอมที่สำลักลงไปจึงมักตกลงปอดขวา"
    },
    {
     "id": "right-lobes",
-    "say": "ระบุกลีบของปอดขวาจากบนลงล่าง: กลีบบน → กลีบกลาง → กลีบล่าง",
+    "say": "ระบุกลีบของปอดขวา: กลีบบน → กลีบกลาง",
     "tool": "forceps",
     "action": "sequence",
     "targets": [
      "R_upper",
-     "R_middle",
-     "R_lower"
+     "R_middle"
+    ],
+    "onSuccess": [
+     "label:R_upper",
+     "label:R_middle"
+    ],
+    "mistakes": [
+     {
+      "target": "heart",
+      "penalty": 1,
+      "explain": "นี่คือหัวใจ อยู่ระหว่างปอดสองข้างค่อนไปทางซ้าย — เป็นระบบหมุนเวียนเลือด ไม่ใช่ระบบหายใจ"
+     }
+    ]
+   },
+   {
+    "id": "lift-middle",
+    "say": "กลีบล่างของปอดขวาซ่อนอยู่ด้านหลัง-ล่าง ใช้ปากคีบยกกลีบกลางขึ้น (กดที่กลีบกลางแล้วลาก)",
+    "tool": "forceps",
+    "action": "drag",
+    "target": "R_middle",
+    "minDrag": 0.012,
+    "onSuccess": [
+     "move:R_middle:0.03:-0.035:-0.012"
+    ]
+   },
+   {
+    "id": "R_lower",
+    "say": "ระบุกลีบล่างของปอดขวา — กลีบที่ใหญ่ที่สุด วางบนกะบังลม",
+    "tool": "forceps",
+    "action": "click",
+    "target": "R_lower",
+    "learn": "รอยแยกระหว่างกลีบ (fissure) แบ่งปอดขวาเป็น 3 กลีบ กลีบล่างอยู่ด้านหลังและวางบนกะบังลม เวลาฟังเสียงปอดกลีบล่างจึงฟังได้ดีที่สุดจากด้านหลัง",
+    "onSuccess": [
+     "label:R_lower"
     ],
     "mistakes": [
      {

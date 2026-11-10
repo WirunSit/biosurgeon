@@ -1,38 +1,39 @@
 from labgen import *
 
 # ---------------- ด่าน 9 ระบบสืบพันธุ์ (แบบจำลองแยกชิ้น 2 ชุดบนถาด) ----------------
-D = 0.026
+# ชุดเพศหญิง (ซ้ายของถาด): BodyParts3D ไม่มีอวัยวะเพศหญิง — ใช้โมเดลที่สร้างจากขนาด/ตำแหน่งตามตำรา (tools/female-pelvis.mjs)
+# ในพิกัดเดียวกับ BodyParts3D ทุกชิ้นต่อกัน: ท่อนำไข่งอกจากมุมมดลูก ตัวมดลูกต่อคอมดลูกและช่องคลอด รังไข่มีเอ็นยึดกับมดลูก
+# มองจากด้านหน้า (แบบภาพในตำรา) ย่อ 0.42 เท่าให้พอดีครึ่งซ้ายของถาด
+F9 = {"origin": [0.085, 0.1, -0.82], "depth": 0.028, "scale": 0.42}
 objects = [
-    # ชุดเพศหญิง (ซ้ายของจอ)
-    {"id": "uterus", "label": "มดลูก", "shape": "ellipsoid", "at": A(-0.033, -0.006, D), "size": [0.011, 0.008, 0.013], "color": "#d9a09a", "rough": 0.45},
-    {"id": "endometrium", "label": "เยื่อบุโพรงมดลูก", "shape": "ellipsoid", "at": A(-0.033, -0.006, D - 0.001), "size": [0.0055, 0.004, 0.0075], "color": "#b8404e", "hidden": True, "hit": 0.004},
-    {"id": "tube_1", "label": "ท่อนำไข่", "shape": "tube", "points": T([(-0.043, -0.014, D - 0.002), (-0.052, -0.017, D - 0.002), (-0.059, -0.012, D - 0.002), (-0.061, -0.003, D - 0.001)]), "r": 0.0017, "color": "#e0a8a0", "hit": 0.004},
-    {"id": "tube_2", "label": "ท่อนำไข่", "shape": "tube", "points": T([(-0.023, -0.014, D - 0.002), (-0.014, -0.017, D - 0.002), (-0.007, -0.012, D - 0.002), (-0.005, -0.003, D - 0.001)]), "r": 0.0017, "color": "#e0a8a0", "hit": 0.004},
-    {"id": "ovary_1", "label": "รังไข่", "shape": "ellipsoid", "at": A(-0.056, 0.007, D), "size": [0.0055, 0.0035, 0.0042], "color": "#ecdcd0", "rough": 0.5},
-    {"id": "ovary_2", "label": "รังไข่", "shape": "ellipsoid", "at": A(-0.01, 0.007, D), "size": [0.0055, 0.0035, 0.0042], "color": "#ecdcd0", "rough": 0.5},
-    {"id": "cervix", "label": "ปากมดลูกและช่องคลอด", "shape": "tube", "points": T([(-0.033, 0.007, D), (-0.033, 0.02, D), (-0.033, 0.034, D)]), "radii": [0.0042, 0.0038, 0.0034], "color": "#d6a4a4", "hit": 0.005},
-    # ชุดเพศชาย (ขวาของจอ)
-    {"id": "bladder", "label": "กระเพาะปัสสาวะ", "shape": "ellipsoid", "at": A(0.03, -0.028, D), "size": [0.009, 0.007, 0.008], "color": "#e6c0b4", "rough": 0.45},
-    {"id": "prostate", "label": "ต่อมลูกหมาก", "shape": "ellipsoid", "at": A(0.03, -0.01, D + 0.001), "size": [0.0055, 0.005, 0.005], "color": "#c9a08a", "rough": 0.5},
-    {"id": "urethra", "label": "ท่อปัสสาวะ", "shape": "tube", "points": T([(0.03, -0.004, D - 0.003), (0.03, 0.012, D - 0.002), (0.029, 0.034, D - 0.002)]), "r": 0.0016, "color": "#eadacb", "hit": 0.004},
-    {"id": "vesicle", "label": "ถุงน้ำเลี้ยงอสุจิ", "shape": "ellipsoid", "at": A(0.047, -0.036, D + 0.002), "size": [0.0042, 0.003, 0.006], "rot": [0, 25, 0], "color": "#d8c49a", "rough": 0.5},
-    {"id": "vas", "label": "ท่อนำอสุจิ", "shape": "tube", "points": T([(0.055, 0.024, D - 0.002), (0.057, 0.006, D - 0.003), (0.054, -0.014, D - 0.003), (0.046, -0.024, D - 0.002), (0.037, -0.016, D - 0.002)]), "r": 0.0012, "color": "#f0e6d0", "hit": 0.0035},
-    {"id": "testis", "label": "อัณฑะ", "shape": "ellipsoid", "at": A(0.046, 0.032, D), "size": [0.0065, 0.006, 0.008], "color": "#e8c4c0", "rough": 0.45},
-    {"id": "epididymis", "label": "หลอดเก็บอสุจิ (เอพิดิดิมิส)", "shape": "ellipsoid", "at": A(0.0535, 0.031, D - 0.001), "size": [0.0018, 0.0026, 0.0072], "color": "#c99a8a", "hit": 0.003},
+    atlas_obj("uterus", "มดลูก", "uterus_body", "#d9a09a", F9, atlasFrame=F9, rough=0.45, motion="none"),
+    atlas_blob("endometrium", "เยื่อบุโพรงมดลูก", F9, frac("uterus_body", 0.5, 0.55, 0.45), [0.012, 0.004, 0.02], "#b8404e", hidden=True, hit=0.004, motion="none"),
+    atlas_obj("tube_1", "ท่อนำไข่", "tube_r", "#e0a8a0", F9, atlasFrame=F9, motion="none"),
+    atlas_obj("tube_2", "ท่อนำไข่", "tube_l", "#e0a8a0", F9, atlasFrame=F9, motion="none"),
+    atlas_obj("ovary_1", "รังไข่", "ovary_r", "#ecdcd0", F9, atlasFrame=F9, rough=0.5, motion="none"),
+    atlas_obj("ovary_2", "รังไข่", "ovary_l", "#ecdcd0", F9, atlasFrame=F9, rough=0.5, motion="none"),
+    atlas_obj("cervix", "ปากมดลูกและช่องคลอด", "cervix_vagina", "#d6a4a4", F9, atlasFrame=F9, motion="none"),
 ]
-# ขยายขนาดชิ้นแบบจำลองให้มองเห็นชัด (ตำแหน่งเดิม)
-for o in objects:
-    for k in ("r", "hit"):
-        if k in o:
-            o[k] = round(o[k] * 1.4, 4)
-    if "size" in o:
-        o["size"] = [round(x * 1.4, 4) for x in o["size"]]
-    if "radii" in o:
-        o["radii"] = [round(x * 1.4, 4) for x in o["radii"]]
+
+# ชุดเพศชายวางตามพิกัดจริงของ BodyParts3D ย่อ 0.55 เท่าให้พอดีครึ่งขวาของถาด
+# ชุดข้อมูลสแกนจากผู้ชาย จึงไม่มีอวัยวะเพศหญิง — ชุดเพศหญิงด้านซ้ายยังเป็นแบบจำลองเดิม
+# หมุน 90° รอบแกนหัว-เท้า: มองจากด้านซ้ายของผู้ชาย (ภาพตัดด้านข้างแบบในตำรา) เห็นหลอดเก็บอสุจิที่อยู่หลังอัณฑะ
+ATLAS9 = {"origin": [0.0, 0.189, -0.768], "depth": 0.031, "scale": 0.55, "rot": [0, 0, 90]}
+VAS = [(0.026, 0.153, -0.712), (0.03, 0.16, -0.76), (0.045, 0.145, -0.818), (0.04, 0.105, -0.838), (0.024, 0.075, -0.816), (0.012, 0.07, -0.8)]
+objects += [
+    atlas_obj("bladder", "กระเพาะปัสสาวะ", "bladder", "#e6c0b4", ATLAS9, rough=0.45, motion="none"),
+    atlas_obj("prostate", "ต่อมลูกหมาก", "prostate", "#c9a08a", ATLAS9, rough=0.5, motion="none"),
+    atlas_obj("urethra", "ท่อปัสสาวะ", "urethra", "#eadacb", ATLAS9, motion="none"),
+    atlas_obj("vesicle", "ถุงน้ำเลี้ยงอสุจิ", "seminal_vesicles", "#d8c49a", ATLAS9, rough=0.5, motion="none"),
+    atlas_tube("vas", "ท่อนำอสุจิ", ATLAS9, VAS, 0.0022, "#f0e6d0", hit=0.004, motion="none"),
+    atlas_obj("testis", "อัณฑะ", "testes", "#e8c4c0", ATLAS9, rough=0.45, motion="none"),
+    atlas_obj("epididymis", "หลอดเก็บอสุจิ (เอพิดิดิมิส)", "epididymis", "#c99a8a", ATLAS9, motion="none"),
+]
+
 
 layers = [{"id": "cover", "name": "ฝาครอบแบบจำลอง", "depth": 0, "color": "#c9d6de", "edge": "#8fa3b0", "tex": "membrane"}]
 steps = [
-    {"id": "open", "say": "เปิดฝาครอบแบบจำลองกายวิภาคด้วยกรรไกร (คลิกที่ฝาครอบ)", "tool": "scissors", "action": "click", "target": "cover", "onSuccess": ["open:cover:0.066"],
+    {"id": "open", "say": "เปิดฝาครอบแบบจำลองกายวิภาคด้วยกรรไกร (คลิกที่ฝาครอบ)", "tool": "scissors", "action": "click", "target": "cover", "onSuccess": ["open:cover:0.08"],
      "learn": "บนถาดมีแบบจำลองอวัยวะสืบพันธุ์ภายใน 2 ชุด — ด้านซ้ายเป็นของเพศหญิง ด้านขวาเป็นของเพศชาย (แสดงเฉพาะอวัยวะภายในและท่อทางเดิน)"},
     {"id": "egg", "say": "ไล่เส้นทางของเซลล์ไข่: รังไข่ → ท่อนำไข่ → มดลูก (แบบจำลองด้านซ้าย)", "tool": "forceps", "action": "sequence", "targets": ["ovary_1", "tube_1", "uterus"],
      "onSuccess": ["label:ovary_1", "label:tube_1", "label:uterus", "label:ovary_2", "label:tube_2"],
@@ -66,6 +67,6 @@ quiz = [
 lab("anatomy-09", 9, "reproductive", "ระบบสืบพันธุ์", "สำรวจแบบจำลองอวัยวะสืบพันธุ์",
     ("เปิดแบบจำลองอวัยวะสืบพันธุ์ภายในของเพศหญิงและเพศชาย ไล่เส้นทางของเซลล์ไข่และอสุจิ",
      "ห้องปฏิบัติการกายวิภาค: วันนี้ใช้แบบจำลองแยกชิ้นวางบนถาด แสดงเฉพาะอวัยวะสืบพันธุ์ภายในและท่อทางเดิน เพื่อเปรียบเทียบโครงสร้างและเส้นทางของเซลล์สืบพันธุ์ทั้งสองเพศ"),
-    steps, objects, layers, {"tray": {"circle": [0.0, 0.0, 0.064]}}, "tray", quiz,
+    steps, objects, layers, {"tray": {"circle": [0.0, 0.0, 0.078]}}, "tray", quiz,
     {"id": "lab-reproductive", "title": "อวัยวะสืบพันธุ์ภายใน", "text": "เพศหญิง: รังไข่สร้างเซลล์ไข่และฮอร์โมน ท่อนำไข่เป็นที่ปฏิสนธิ มดลูกมีเยื่อบุที่รับการฝังตัว ปากมดลูกต่อกับช่องคลอด เพศชาย: อัณฑะสร้างอสุจิ หลอดเก็บอสุจิเก็บอสุจิ ท่อนำอสุจิลำเลียงไปผสมกับของเหลวจากถุงน้ำเลี้ยงอสุจิและต่อมลูกหมาก ออกทางท่อปัสสาวะ"},
-    window=(0.08, 0.075), center=(0.0, 0.3), cavity=("#3f4d5a", 0.045))
+    window=(0.095, 0.088), center=(0.0, 0.3), cavity=("#3f4d5a", 0.1), atlas=ATLAS9)

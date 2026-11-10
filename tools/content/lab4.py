@@ -9,28 +9,32 @@ TRUNK_LAYERS = lambda memb: skin_layers(
 def trunk_open(memb):
     return [
         {"id": "incise", "say": "กรีดผิวหนังหุ่นจำลองตามแนวกลางลำตัว (ลากตามเส้นประ)", "tool": "scalpel", "action": "trace", "path": "incision", "minAccuracy": 0.45, "onSuccess": ["open:skin:0.02"]},
-        {"id": "open", "say": "จี้เปิดกล้ามเนื้อตามแนวแผล (กดค้างบนแนวแผล)", "tool": "cautery", "action": "hold", "target": "incision", "holdSec": 1.0, "onSuccess": ["open:skin:0.07", "open:muscle:0.067", "label:membrane"]},
-        {"id": "membrane", "say": f"เปิด{memb}ด้วยกรรไกร (คลิกที่เยื่อ)", "tool": "scissors", "action": "click", "target": "membrane", "onSuccess": ["open:membrane:0.062"]},
+        {"id": "open", "say": "จี้เปิดกล้ามเนื้อตามแนวแผล (กดค้างบนแนวแผล)", "tool": "cautery", "action": "hold", "target": "incision", "holdSec": 1.0, "onSuccess": ["open:skin:0.12", "open:muscle:0.116", "label:membrane"]},
+        {"id": "membrane", "say": f"เปิด{memb}ด้วยกรรไกร (คลิกที่เยื่อ)", "tool": "scissors", "action": "click", "target": "membrane", "onSuccess": ["open:membrane:0.112"]},
     ]
 
 
 # ---------------- ด่าน 4 ระบบน้ำเหลืองและภูมิคุ้มกัน ----------------
 node = "#d8b8a0"
+# หุ่นจำลองที่นำทางเดินอาหารส่วนใหญ่ออกแล้ว เหลืออวัยวะน้ำเหลืองและจุดสังเกต — วางตามพิกัดจริง (สเกล 1:1)
+ATLAS4 = {"origin": [0.0, 0.185, -1.15], "depth": 0.03}
+# ซิสเทอร์นาไคไล (ระดับกระดูกสันหลังเอว 1–2 ด้านขวาหลังเอออร์ตา) → ท่อน้ำเหลืองใหญ่วิ่งขึ้นหลังหัวใจ ข้ามไปซ้าย เทเข้าหลอดเลือดดำที่โคนคอซ้าย
+DUCT = [(-0.006, 0.06, -1.045), (-0.004, 0.064, -1.12), (0.0, 0.068, -1.22), (0.008, 0.074, -1.3), (0.022, 0.09, -1.36)]
 objects = [
-    {"id": "thymus", "label": "ต่อมไทมัส", "shape": "ellipsoid", "at": A(-0.008, -0.078, 0.03), "size": [0.008, 0.004, 0.014], "rot": [0, 10, 0], "color": "#e8c8b8", "rough": 0.6},
-    {"id": "thymus_L", "shape": "ellipsoid", "at": A(0.008, -0.076, 0.03), "size": [0.008, 0.004, 0.014], "rot": [0, -10, 0], "color": "#e8c8b8", "rough": 0.6, "parent": "thymus"},
-    {"id": "heart", "label": "หัวใจ", "shape": "ellipsoid", "at": A(0.006, -0.044, 0.046), "size": [0.019, 0.012, 0.018], "color": "#b5414a", "rough": 0.4, "pulse": True},
-    {"id": "stomach", "label": "กระเพาะอาหาร", "shape": "ellipsoid", "at": A(0.03, -0.012, 0.04), "size": [0.018, 0.01, 0.014], "rot": [0, -25, 0], "color": "#d9928a", "rough": 0.45},
-    {"id": "spleen", "label": "ม้าม", "shape": "ellipsoid", "at": A(0.05, 0.004, 0.048), "size": [0.009, 0.008, 0.015], "rot": [0, 25, 0], "color": "#6e2636", "rough": 0.35},
-    {"id": "aorta", "label": "หลอดเลือดแดงใหญ่", "shape": "tube", "points": T([(0.01, -0.02, 0.066), (0.009, 0.03, 0.066), (0.008, 0.09, 0.066)]), "r": 0.005, "color": "#c0283a", "hit": 0.006},
-    {"id": "duct", "label": "ท่อน้ำเหลืองใหญ่ (ทอราซิกดักต์)", "shape": "tube", "points": T([(-0.006, 0.07, 0.062), (-0.005, 0.03, 0.061), (-0.004, -0.015, 0.06)]), "r": 0.0016, "color": "#f3eedc", "emissive": "#6a6040", "hit": 0.0045},
-    {"id": "cisterna", "shape": "ellipsoid", "at": A(-0.006, 0.075, 0.062), "size": [0.0035, 0.003, 0.006], "color": "#f3eedc", "parent": "duct"},
-    {"id": "ln1", "label": "ต่อมน้ำเหลือง", "shape": "ellipsoid", "at": A(0.022, 0.024, 0.06), "size": [0.0045, 0.003, 0.0055], "color": node, "hit": 0.005},
-    {"id": "ln2", "label": "ต่อมน้ำเหลือง", "shape": "ellipsoid", "at": A(-0.02, 0.044, 0.06), "size": [0.0045, 0.003, 0.0055], "color": node, "hit": 0.005},
-    {"id": "ln3", "label": "ต่อมน้ำเหลือง", "shape": "ellipsoid", "at": A(0.022, 0.064, 0.061), "size": [0.0045, 0.003, 0.0055], "color": node, "hit": 0.005},
-    {"id": "lv1", "shape": "tube", "points": T([(0.022, 0.024, 0.061), (0.008, 0.03, 0.062), (-0.005, 0.034, 0.062)]), "r": 0.0008, "color": "#efe6cc", "noPick": True},
-    {"id": "lv2", "shape": "tube", "points": T([(-0.02, 0.044, 0.061), (-0.012, 0.05, 0.062), (-0.006, 0.056, 0.062)]), "r": 0.0008, "color": "#efe6cc", "noPick": True},
-    {"id": "lv3", "shape": "tube", "points": T([(0.022, 0.064, 0.062), (0.008, 0.07, 0.062), (-0.005, 0.072, 0.062)]), "r": 0.0008, "color": "#efe6cc", "noPick": True},
+    atlas_obj("thymus", "ต่อมไทมัส", "thymus", "#e8c8b8", ATLAS4, rough=0.6),
+    atlas_obj("heart", "หัวใจ", "heart", "#b5414a", ATLAS4, rough=0.4, pulse=True),
+    atlas_obj("stomach", "กระเพาะอาหาร", "stomach", "#d9928a", ATLAS4, rough=0.45),
+    atlas_obj("spleen", "ม้าม", "spleen", "#6e2636", ATLAS4, rough=0.35),
+    atlas_obj("aorta", "หลอดเลือดแดงใหญ่", "aorta", "#c0283a", ATLAS4),
+    atlas_tube("duct", "ท่อน้ำเหลืองใหญ่ (ทอราซิกดักต์)", ATLAS4, DUCT, 0.0022, "#f3eedc", hit=0.006),
+    atlas_blob("cisterna", None, ATLAS4, (-0.006, 0.06, -1.04), [0.006, 0.005, 0.012], "#f3eedc", parent="duct"),
+    # ต่อมน้ำเหลืองข้างเอออร์ตาและแอ่งเชิงกราน (ขนาดจริง ~1 ซม.)
+    atlas_blob("ln1", "ต่อมน้ำเหลือง", ATLAS4, (0.028, 0.085, -1.06), [0.006, 0.004, 0.008], node, hit=0.007),
+    atlas_blob("ln2", "ต่อมน้ำเหลือง", ATLAS4, (-0.024, 0.09, -1.02), [0.006, 0.004, 0.008], node, hit=0.007),
+    atlas_blob("ln3", "ต่อมน้ำเหลือง", ATLAS4, (0.036, 0.095, -0.99), [0.006, 0.004, 0.008], node, hit=0.007),
+    atlas_tube("lv1", None, ATLAS4, [(0.028, 0.085, -1.06), (0.012, 0.07, -1.05), (-0.004, 0.062, -1.045)], 0.001, "#efe6cc", noPick=True),
+    atlas_tube("lv2", None, ATLAS4, [(-0.024, 0.09, -1.02), (-0.014, 0.075, -1.03), (-0.006, 0.064, -1.04)], 0.001, "#efe6cc", noPick=True),
+    atlas_tube("lv3", None, ATLAS4, [(0.036, 0.095, -0.99), (0.022, 0.08, -1.01), (0.0, 0.066, -1.035)], 0.001, "#efe6cc", noPick=True),
 ]
 NOT_LYMPH = lambda n: f"นี่คือ{n} ไม่ใช่อวัยวะในระบบน้ำเหลือง"
 steps = trunk_open("เยื่อบุช่องอกและช่องท้อง") + [
@@ -68,40 +72,34 @@ quiz = [
 lab("anatomy-04", 4, "immune", "ระบบน้ำเหลืองและภูมิคุ้มกัน", "สำรวจเครือข่ายน้ำเหลือง",
     ("ผ่าหุ่นจำลองลำตัว ดูต่อมไทมัส ม้าม ต่อมน้ำเหลือง และท่อน้ำเหลืองใหญ่",
      "ห้องปฏิบัติการกายวิภาค: หุ่นจำลองนี้นำลำไส้ออกแล้ว เพื่อให้เห็นระบบน้ำเหลืองที่ปกติซ่อนอยู่ลึก ๆ — มาดูว่าร่างกายวางด่านตรวจเชื้อโรคไว้ตรงไหนบ้าง"),
-    steps, objects, TRUNK_LAYERS("เยื่อบุช่องอกและช่องท้อง"), {"incision": {"points": [[0.0, -0.105], [0.0, 0.105]]}}, "incision", quiz,
+    steps, objects, TRUNK_LAYERS("เยื่อบุช่องอกและช่องท้อง"), {"incision": {"points": [[0.0, -0.2], [0.0, 0.2]]}}, "incision", quiz,
     {"id": "lab-immune", "title": "เครือข่ายน้ำเหลือง", "text": "ต่อมไทมัสอยู่หลังกระดูกอก เป็นที่เจริญของ T cell ม้ามอยู่ใต้ชายโครงซ้ายกรองเลือด ต่อมน้ำเหลืองเรียงตามแนวหลอดเลือดกรองน้ำเหลือง และท่อน้ำเหลืองใหญ่นำน้ำเหลืองกับไขมันจากลำไส้กลับเข้าหลอดเลือดดำที่โคนคอ"},
-    window=(0.09, 0.12), center=(0.0, -0.18), cavity=("#5e2e2a", 0.08))
+    window=(0.15, 0.22), center=(0.0, -0.18), cavity=("#5e2e2a", 0.17), atlas=ATLAS4)
 
 # ---------------- ด่าน 5 ระบบขับถ่าย ----------------
 kid = "#8e3b30"
+# ช่องท้องด้านหลัง (หลังนำทางเดินอาหารออก) — วางตามพิกัดจริง (สเกล 1:1)
+ATLAS5 = {"origin": [0.0, 0.145, -0.955], "depth": 0.03}
+KR = "kidney_r"
 objects = [
-    {"id": "kidney_R", "label": "ไตขวา", "shape": "ellipsoid", "at": A(-0.036, -0.026, 0.062), "size": [0.011, 0.009, 0.019], "rot": [0, -12, 0], "color": kid, "rough": 0.35},
-    {"id": "kidney_L", "label": "ไตซ้าย", "shape": "ellipsoid", "at": A(0.036, -0.036, 0.062), "size": [0.011, 0.009, 0.019], "rot": [0, 12, 0], "color": kid, "rough": 0.35},
-    {"id": "adrenal_R", "label": "ต่อมหมวกไตขวา", "shape": "ellipsoid", "at": A(-0.033, -0.051, 0.058), "size": [0.007, 0.0035, 0.005], "color": "#d9a24a", "hit": 0.005},
-    {"id": "adrenal_L", "label": "ต่อมหมวกไตซ้าย", "shape": "ellipsoid", "at": A(0.033, -0.061, 0.058), "size": [0.007, 0.0035, 0.005], "color": "#d9a24a", "hit": 0.005},
-    {"id": "aorta", "label": "หลอดเลือดแดงใหญ่", "shape": "tube", "points": T([(0.009, -0.08, 0.068), (0.009, -0.01, 0.068), (0.009, 0.05, 0.068)]), "r": 0.0055, "color": "#c0283a", "hit": 0.006},
-    {"id": "ivc", "label": "หลอดเลือดดำใหญ่", "shape": "tube", "points": T([(-0.011, -0.08, 0.067), (-0.011, -0.01, 0.067), (-0.011, 0.05, 0.067)]), "r": 0.0062, "color": "#3f5fb8", "hit": 0.006},
-    {"id": "renal_artery", "label": "หลอดเลือดแดงไต", "shape": "tube", "points": T([(0.012, -0.044, 0.066), (0.02, -0.044, 0.065), (0.027, -0.042, 0.063)]), "r": 0.0022, "color": "#d0384a", "hit": 0.0045},
-    {"id": "renal_vein", "label": "หลอดเลือดดำไต", "shape": "tube", "points": T([(-0.008, -0.034, 0.062), (0.01, -0.035, 0.06), (0.027, -0.034, 0.061)]), "r": 0.0026, "color": "#4b6cc8", "hit": 0.0045},
-    {"id": "ureter_R", "label": "ท่อไตขวา", "shape": "tube", "points": T([(-0.028, -0.018, 0.064), (-0.026, 0.02, 0.064), (-0.016, 0.055, 0.06), (-0.008, 0.066, 0.056)]), "r": 0.0022, "color": "#e8dcc0", "hit": 0.0045},
-    {"id": "ureter_L", "label": "ท่อไตซ้าย", "shape": "tube", "points": T([(0.028, -0.028, 0.064), (0.026, 0.02, 0.064), (0.016, 0.055, 0.06), (0.008, 0.066, 0.056)]), "r": 0.0022, "color": "#e8dcc0", "hit": 0.0045},
-    {"id": "bladder", "label": "กระเพาะปัสสาวะ", "shape": "ellipsoid", "at": A(0.0, 0.07, 0.054), "size": [0.014, 0.009, 0.011], "color": "#e6c0b4", "rough": 0.45},
-    {"id": "cortex", "label": "เนื้อไตชั้นนอก (คอร์เทกซ์)", "shape": "ellipsoid", "at": A(-0.036, -0.026, 0.062), "size": [0.011, 0.0035, 0.019], "rot": [0, -12, 0], "color": "#a8483a", "rough": 0.6, "hidden": True},
-    {"id": "medulla", "label": "เนื้อไตชั้นใน (เมดัลลา)", "shape": "ellipsoid", "at": A(-0.0305, -0.032, 0.0583), "size": [0.0026, 0.0008, 0.0038], "rot": [0, -40, 0], "color": "#5e2224", "hidden": True, "hit": 0.004},
-    {"id": "medulla2", "shape": "ellipsoid", "at": A(-0.0315, -0.025, 0.0583), "size": [0.0026, 0.0008, 0.0038], "rot": [0, -10, 0], "color": "#5e2224", "hidden": True, "parent": "medulla"},
-    {"id": "medulla3", "shape": "ellipsoid", "at": A(-0.0305, -0.018, 0.0583), "size": [0.0026, 0.0008, 0.0038], "rot": [0, 25, 0], "color": "#5e2224", "hidden": True, "parent": "medulla"},
-    {"id": "pelvis", "label": "กรวยไต", "shape": "ellipsoid", "at": A(-0.0265, -0.025, 0.0578), "size": [0.0028, 0.001, 0.006], "color": "#ecd8b8", "hidden": True, "hit": 0.004},
+    atlas_obj("kidney_R", "ไตขวา", "kidney_r", kid, ATLAS5, rough=0.35),
+    atlas_obj("kidney_L", "ไตซ้าย", "kidney_l", kid, ATLAS5, rough=0.35),
+    atlas_obj("adrenal_R", "ต่อมหมวกไตขวา", "adrenal_r", "#d9a24a", ATLAS5),
+    atlas_obj("adrenal_L", "ต่อมหมวกไตซ้าย", "adrenal_l", "#d9a24a", ATLAS5),
+    atlas_obj("aorta", "หลอดเลือดแดงใหญ่", "aorta", "#c0283a", ATLAS5),
+    atlas_obj("ivc", "หลอดเลือดดำใหญ่", "ivc", "#3f5fb8", ATLAS5),
+    atlas_obj("renal_artery", "หลอดเลือดแดงไต", "renal_artery", "#d0384a", ATLAS5),
+    atlas_obj("renal_vein", "หลอดเลือดดำไต", "renal_vein", "#4b6cc8", ATLAS5),
+    atlas_obj("ureter_R", "ท่อไตขวา", "ureter_r", "#e8dcc0", ATLAS5),
+    atlas_obj("ureter_L", "ท่อไตซ้าย", "ureter_l", "#e8dcc0", ATLAS5),
+    atlas_obj("bladder", "กระเพาะปัสสาวะ", "bladder", "#e6c0b4", ATLAS5, rough=0.45),
+    # ไตขวาผ่าครึ่งตามแนวหน้า-หลัง (แสดงหลังตัด): เนื้อชั้นนอก, พีระมิดชั้นใน 3 อันเรียงตามยาว, กรวยไตตรงขั้วไต (ด้านใน)
+    atlas_blob("cortex", "เนื้อไตชั้นนอก (คอร์เทกซ์)", ATLAS5, frac(KR, 0.5, 0.3, 0.5), [0.029, 0.012, 0.05], "#a8483a", rough=0.6, hidden=True, motion="none"),
+    atlas_blob("medulla", "เนื้อไตชั้นใน (เมดัลลา)", ATLAS5, frac(KR, 0.6, 0.56, 0.3), [0.009, 0.002, 0.011], "#5e2224", hidden=True, hit=0.007, rot=[0, 35, 0], motion="none"),
+    atlas_blob("medulla2", None, ATLAS5, frac(KR, 0.56, 0.56, 0.5), [0.009, 0.002, 0.011], "#5e2224", hidden=True, parent="medulla", rot=[0, 80, 0], motion="none"),
+    atlas_blob("medulla3", None, ATLAS5, frac(KR, 0.6, 0.56, 0.7), [0.009, 0.002, 0.011], "#5e2224", hidden=True, parent="medulla", rot=[0, -35, 0], motion="none"),
+    atlas_blob("pelvis", "กรวยไต", ATLAS5, frac(KR, 0.74, 0.6, 0.5), [0.008, 0.0025, 0.016], "#ecd8b8", hidden=True, hit=0.007, motion="none"),
 ]
-# เลื่อนกลุ่มไตลงมากลางแผล (ยกเว้นกระเพาะปัสสาวะและหลอดเลือดใหญ่)
-for o in objects:
-    if o["id"] in ("bladder", "aorta", "ivc"):
-        continue
-    if "at" in o:
-        o["at"][1] = round(o["at"][1] + 0.014, 4)
-    else:
-        n = 2 if o["id"].startswith("ureter") else len(o["points"])
-        for p_ in o["points"][:n]:
-            p_[1] = round(p_[1] + 0.014, 4)
 
 steps = trunk_open("เยื่อบุช่องท้องด้านหลัง") + [
     click("kidney", "ระบุไตขวา — อวัยวะรูปถั่วที่ติดผนังช่องท้องด้านหลัง", "kidney_R",
@@ -134,6 +132,6 @@ quiz = [
 lab("anatomy-05", 5, "excretory", "ระบบขับถ่าย", "สำรวจไตและทางเดินปัสสาวะ",
     ("ผ่าหุ่นจำลองช่องท้องด้านหลัง ดูไต หลอดเลือดไต ท่อไต กระเพาะปัสสาวะ และผ่าครึ่งไต",
      "ห้องปฏิบัติการกายวิภาค: หุ่นจำลองนี้นำลำไส้ออกแล้วเพื่อให้เห็นไตซึ่งอยู่ลึกติดผนังด้านหลัง เราจะผ่าครึ่งไตดูโครงสร้างภายในด้วย"),
-    steps, objects, TRUNK_LAYERS("เยื่อบุช่องท้องด้านหลัง"), {"incision": {"points": [[0.0, -0.09], [0.0, 0.09]]}}, "incision", quiz,
+    steps, objects, TRUNK_LAYERS("เยื่อบุช่องท้องด้านหลัง"), {"incision": {"points": [[0.0, -0.18], [0.0, 0.18]]}}, "incision", quiz,
     {"id": "lab-excretory", "title": "ไตและทางเดินปัสสาวะ", "text": "ไตสองข้างอยู่หลังเยื่อบุช่องท้องข้างกระดูกสันหลัง รับเลือดจากหลอดเลือดแดงไต ภายในแบ่งเป็นชั้นนอก (มีส่วนกรองของหน่วยไต) ชั้นใน (พีระมิด) และกรวยไต ปัสสาวะไหลผ่านท่อไตลงกระเพาะปัสสาวะ ต่อมหมวกไตที่อยู่บนไตเป็นต่อมไร้ท่อ"},
-    window=(0.09, 0.1), center=(0.0, -0.02), cavity=("#5e2e2a", 0.08))
+    window=(0.15, 0.2), center=(0.0, -0.02), cavity=("#5e2e2a", 0.17), atlas=ATLAS5)

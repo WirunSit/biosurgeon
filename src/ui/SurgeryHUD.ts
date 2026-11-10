@@ -30,11 +30,16 @@ export class SurgeryHUD {
   private toolBtns = new Map<ToolId, HTMLButtonElement>();
   private lastMsg = new Map<string, number>();
   private teachTimer = 0;
+  /** การ์ดความรู้ถูกย่อเหลือแถบหัว (จำไว้ข้ามด่าน) */
+  private teachMin = false;
   labelsOn: boolean;
 
   onTool?: (id: ToolId | null) => void;
   onHint?: () => void;
   onZoom?: (dir: number) => void;
+  onResetView?: () => void;
+  /** เลื่อนมุมมอง: rx = ซ้าย(-1)/ขวา(+1), fy = ลง(-1)/ขึ้น(+1) */
+  onPanStep?: (rx: number, fy: number) => void;
   onSound?: (on: boolean) => void;
 
   private scopeMask = h('div', { class: 'scope-mask hidden' });
@@ -61,6 +66,13 @@ export class SurgeryHUD {
       labelBtn.classList.toggle('on', this.labelsOn);
     });
     const soundBtn = h('button', { class: `btn small ${soundOn ? 'on' : ''}` }, 'เสียง');
+    // โหมดสอน: ซ่อนคำสั่ง ข้อความ และการ์ดความรู้ ให้เห็นโมเดลเต็มจอขณะครูอธิบาย
+    const cleanBtn = h('button', { class: 'btn small', title: 'ซ่อน/แสดงแผงข้อความทั้งหมด (T)' }, 'ซ่อนข้อความ (T)');
+    cleanBtn.addEventListener('click', () => {
+      const on = this.el.classList.toggle('clean');
+      cleanBtn.classList.toggle('on', on);
+    });
+    this.toggleClean = () => cleanBtn.click();
     let snd = soundOn;
     soundBtn.addEventListener('click', () => {
       snd = !snd;
@@ -81,14 +93,24 @@ export class SurgeryHUD {
         h('button', { class: 'btn small hint', onclick: () => this.onHint?.() }, 'ขอคำใบ้ (H)'),
         h('button', { class: 'btn small', onclick: () => this.onTool?.(null) }, 'วางเครื่องมือ (Esc)'),
         labelBtn,
+        cleanBtn,
         h('button', { class: 'btn small', onclick: () => this.onZoom?.(-1), 'aria-label': 'ซูมเข้า' }, '＋'),
         h('button', { class: 'btn small', onclick: () => this.onZoom?.(1), 'aria-label': 'ซูมออก' }, '－'),
+        h('button', { class: 'btn small', onclick: () => this.onResetView?.(), title: 'กลับมุมมองเดิม (R) — คลิกขวาลาก = หมุน, คลิกกลางลาก = เลื่อน' }, 'มุมเดิม (R)'),
+        this.padButtons(),
         soundBtn,
         this.timer,
       ),
       this.labelsLayer,
     );
     this.el.prepend(this.scopeMask);
+    try {
+      this.teachMin = localStorage.getItem('bs.teachMin') === '1';
+      const pos = JSON.parse(localStorage.getItem('bs.teachPos') ?? 'null') as [number, number] | null;
+      if (pos) this.placeTeach(pos[0], pos[1]);
+    } catch {
+      /* เบราว์เซอร์ปิด localStorage — ใช้ตำแหน่งเริ่มต้น */
+    }
     this.el.addEventListener('keydown', (e) => e.stopPropagation());
     ui().append(this.el);
   }
@@ -135,16 +157,101 @@ export class SurgeryHUD {
     setTimeout(() => item.classList.add('old'), 9000);
   }
 
-  /** การ์ดความรู้ชีววิทยา (ไม่บังการเล่น หายเองหลังไม่กี่วินาที) */
+  toggleClean: () => void = () => {};
+
+  /** ปุ่มลูกศรเลื่อนมุมมอง (กดค้าง = เลื่อนต่อเนื่อง) */
+  private padButtons(): HTMLElement {
+    const pad = h('span', { class: 'pan-pad', title: 'เลื่อนมุมมอง (ปุ่มลูกศรบนคีย์บอร์ดก็ได้)' });
+    const dirs: [string, string, number, number][] = [
+      ['◀', 'เลื่อนซ้าย', -1, 0],
+      ['▲', 'เลื่อนขึ้น', 0, 1],
+      ['▼', 'เลื่อนลง', 0, -1],
+      ['▶', 'เลื่อนขวา', 1, 0],
+    ];
+    for (const [sym, label, rx, fy] of dirs) {
+      const b = h('button', { class: 'btn small', 'aria-label': label, title: label }, sym);
+      let timer = 0;
+      let wait = 0;
+      const stop = () => {
+        clearTimeout(wait);
+        clearInterval(timer);
+      };
+      b.addEventListener('pointerdown', (e) => {
+        e.preventDefault();
+        this.onPanStep?.(rx, fy);
+        stop();
+        // กดค้างเกิน ¼ วินาที = เลื่อนต่อเนื่อง
+        wait = window.setTimeout(() => (timer = window.setInterval(() => this.onPanStep?.(rx * 0.35, fy * 0.35), 50)), 250);
+      });
+      for (const ev of ['pointerup', 'pointerleave', 'pointercancel']) b.addEventListener(ev, stop);
+      pad.append(b);
+    }
+    return pad;
+  }
+
+  /** ซูมเข้าใกล้: แผงข้อมูลจางลง ชี้เมาส์ที่แผงจึงชัด */
+  setZoomed(on: boolean): void {
+    this.el.classList.toggle('zoomed', on);
+  }
+
+  /** วางการ์ดความรู้ที่ตำแหน่ง (พิกเซล) โดยไม่หลุดขอบจอ */
+  private placeTeach(x: number, y: number): void {
+    const w = this.teach.offsetWidth || 300;
+    const hh = this.teach.offsetHeight || 60;
+    x = Math.max(4, Math.min(window.innerWidth - w - 4, x));
+    y = Math.max(4, Math.min(window.innerHeight - Math.min(hh, 60) - 4, y));
+    Object.assign(this.teach.style, { left: `${x}px`, top: `${y}px`, right: 'auto', bottom: 'auto' });
+  }
+
+  /**
+   * การ์ดความรู้ชีววิทยา — ลากที่แถบหัวเพื่อย้ายไปที่ที่ไม่บังโมเดล (จำตำแหน่งไว้), ย่อเหลือแถบหัวได้, หายเองหลังไม่กี่วินาที
+   */
   learn(title: string, text: string, who: Speaker = 'attending'): void {
     this.teach.innerHTML = '';
-    this.teach.append(
-      h('div', { class: 'teach-head' }, h('b', {}, title), h('span', {}, SPEAKERS[who])),
-      h('p', {}, text),
-      h('button', { class: 'btn tiny', onclick: () => this.teach.classList.add('hidden') }, 'ปิด'),
-    );
+    const minBtn = h('button', { class: 'btn tiny', title: 'ย่อ/ขยาย' }, this.teachMin ? 'ขยาย' : 'ย่อ');
+    const head = h('div', { class: 'teach-head', title: 'ลากเพื่อย้าย' }, h('b', {}, title), h('span', {}, SPEAKERS[who]), minBtn, h('button', { class: 'btn tiny', onclick: () => this.teach.classList.add('hidden') }, 'ปิด'));
+    const apply = () => {
+      this.teach.classList.toggle('min', this.teachMin);
+      minBtn.textContent = this.teachMin ? 'ขยาย' : 'ย่อ';
+    };
+    minBtn.addEventListener('click', () => {
+      this.teachMin = !this.teachMin;
+      apply();
+      try {
+        localStorage.setItem('bs.teachMin', this.teachMin ? '1' : '0');
+      } catch {
+        /* ไม่บันทึกได้ก็ไม่เป็นไร */
+      }
+    });
+    // ลากย้ายการ์ด
+    head.addEventListener('pointerdown', (e) => {
+      if ((e.target as HTMLElement).closest('button')) return;
+      e.preventDefault();
+      const r = this.teach.getBoundingClientRect();
+      const ox = e.clientX - r.left;
+      const oy = e.clientY - r.top;
+      head.setPointerCapture(e.pointerId);
+      clearTimeout(this.teachTimer);
+      const move = (ev: PointerEvent) => this.placeTeach(ev.clientX - ox, ev.clientY - oy);
+      const up = () => {
+        head.removeEventListener('pointermove', move);
+        head.removeEventListener('pointerup', up);
+        const rr = this.teach.getBoundingClientRect();
+        try {
+          localStorage.setItem('bs.teachPos', JSON.stringify([Math.round(rr.left), Math.round(rr.top)]));
+        } catch {
+          /* ไม่บันทึกได้ก็ไม่เป็นไร */
+        }
+      };
+      head.addEventListener('pointermove', move);
+      head.addEventListener('pointerup', up);
+    });
+    this.teach.append(head, h('p', {}, text));
+    apply();
     this.teach.classList.remove('hidden');
     clearTimeout(this.teachTimer);
+    // ชี้เมาส์ค้างบนการ์ด = ไม่หายเอง (ครูกำลังอ่าน/อธิบาย)
+    this.teach.onpointerenter = () => clearTimeout(this.teachTimer);
     this.teachTimer = window.setTimeout(() => this.teach.classList.add('hidden'), 14000);
   }
 
