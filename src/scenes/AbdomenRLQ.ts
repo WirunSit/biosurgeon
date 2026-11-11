@@ -2,6 +2,7 @@ import * as THREE from 'three';
 import type { ToolId } from '../types';
 import type { LabelAnchor, PickResult, SurgeryScene } from '../core/SurgeryScene';
 import { openingHalfWidth, openingInside } from '../core/IncisionSystem';
+import { ensureBVH } from '../core/fastPick';
 import {
   WIN,
   Y0,
@@ -276,6 +277,7 @@ export class AbdomenRLQScene implements SurgeryScene {
   // ---------- การเลือกเป้าหมาย ----------
 
   pick(ray: THREE.Raycaster): PickResult {
+    ensureBVH(this.pickables);
     const uv = this.skinUV(ray);
     const hits = ray.intersectObjects(this.pickables, false);
     for (const h of hits) {

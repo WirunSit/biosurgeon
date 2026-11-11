@@ -173,6 +173,9 @@ export function buildRoom(scene: THREE.Scene, monitorCanvas: HTMLCanvasElement):
 
   group.traverse((o) => {
     if ((o as THREE.Mesh).isMesh && o !== walls && o !== floor) o.castShadow = false;
+    // วาดห้องหลังตัวผู้ป่วย: พื้น/ผนัง/เตียงที่ถูกผ้าคลุมและอวัยวะบังจะถูกทิ้งด้วย depth test แทนการคำนวณแสงทั้งจอแล้วทับ
+    // (เดิมพื้นกับผนังถูกวาดก่อนเพราะจุดกึ่งกลางใกล้กล้อง เสียเวลา GPU ~7 มิลลิวินาที/เฟรม บนการ์ดจอในเครื่อง)
+    o.renderOrder = 1;
   });
   scene.add(group);
   return { group, lampLight, monitorTexture };

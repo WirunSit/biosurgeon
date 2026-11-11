@@ -8,6 +8,7 @@ import { capEnds, varTube } from '../procedural/geom';
 import { loadModel, loadModelRaw } from '../core/AssetLoader';
 import { bakeRest, longAxis, tissueKindOf, tissueMaterial, TissueDyn } from '../procedural/tissue';
 import { CutWall, wallKindOf } from '../procedural/cutwall';
+import { ensureBVH } from '../core/fastPick';
 
 /**
  * ฉากผ่าตัดทั่วไปที่สร้างทั้งหมดจากข้อมูล JSON (field ในไฟล์เคส)
@@ -138,6 +139,8 @@ export class FieldScene implements SurgeryScene {
   private sceneVer = 0;
   /** เวลาที่กล้องขยับล่าสุด — ระหว่างหมุน/ซูมใช้จุดยึดเดิม ไม่ยิงรังสีคำนวณใหม่ทุกเฟรม */
   private camMovedAt = 0;
+  /** เวลาเฟรมล่าสุดที่คำนวณจุดที่มองเห็นได้ใหม่ (จำกัดงานของป้ายชื่อเฟรมละ 1 ชิ้น) */
+  private anchorWorkAt = -1;
   private lastCam = new THREE.Vector3();
 
   constructor(
@@ -604,7 +607,7 @@ export class FieldScene implements SurgeryScene {
    * จุดบนผิววัตถุ atlas ที่กล้องมองเห็นได้จริง (ไม่ถูกอวัยวะอื่น/ผนังหน้าท้องบัง) ใกล้กลางส่วนที่เห็นที่สุด
    * ใช้เป็นจุดคลิกของตัวเล่นอัตโนมัติ วงแหวนไฮไลต์ และป้ายชื่อ — คำนวณใหม่เมื่อมุมกล้องหรือฉากเปลี่ยน (ไม่เกิน 3 ครั้ง/วินาที)
    */
-  private visibleAnchor(o: Obj): THREE.Vector3 | null {
+  private visibleAnchor(o: Obj, lazy = false): THREE.Vector3 | null {
     if (!o.surf || !this.camera) return null;
     const cam = this.camera.position;
     const r = (x: number) => Math.round(x * 500);
@@ -613,6 +616,9 @@ export class FieldScene implements SurgeryScene {
     const key = `${r(cam.x)},${r(cam.y)},${r(cam.z)}|${r(gp.x)},${r(gp.y)},${r(gp.z)}|${opens}|${o.group.visible}|${this.sceneVer}`;
     const c = this.visAnchor.get(o.def.id);
     if (c && (c.key === key || this.clock - c.t < 0.33 || this.clock - this.camMovedAt < 0.25)) return c.local;
+    // ป้ายชื่อ (lazy): คำนวณใหม่ไม่เกินเฟรมละ 1 ชิ้น กันเฟรมกระตุกตอนกล้องหยุดแล้วทุกป้ายคำนวณพร้อมกัน
+    if (c && lazy && this.anchorWorkAt === this.clock) return c.local;
+    this.anchorWorkAt = this.clock;
     const ray = new THREE.Raycaster();
     const seen: THREE.Vector3[] = [];
     const edge: THREE.Vector3[] = [];
@@ -665,7 +671,7 @@ export class FieldScene implements SurgeryScene {
     o.dyn.waveSpeed = 1.4;
   }
 
-  private anchorOf(id: string): THREE.Vector3 | null {
+  private anchorOf(id: string, lazy = false): THREE.Vector3 | null {
     const o = this.objs.get(id);
     if (o) {
       o.inner.updateWorldMatrix(true, false);
@@ -676,7 +682,7 @@ export class FieldScene implements SurgeryScene {
       }
       if (o.surf) {
         // atlas: จุดบนผิวส่วนที่มองเห็น ยกเข้าหากล้องเล็กน้อย
-        const local = this.visibleAnchor(o);
+        const local = this.visibleAnchor(o, lazy);
         if (local) {
           const p = local.clone().applyMatrix4(o.inner.matrixWorld);
           return this.camera ? p.add(this.camera.position.clone().sub(p).setLength(0.002 * this.unit)) : p;
@@ -763,6 +769,7 @@ export class FieldScene implements SurgeryScene {
   // ---------- SurgeryScene ----------
 
   pick(ray: THREE.Raycaster): PickResult {
+    ensureBVH(this.pickables);
     const uv = this.planeUV(ray);
     const hits = ray.intersectObjects(this.pickables, false);
     for (const h of hits) {
@@ -1491,7 +1498,7 @@ export class FieldScene implements SurgeryScene {
     for (const [id, o] of this.objs) {
       if (!o.def.label || !o.group.visible) continue;
       if (!this.organLabels.has(id)) continue;
-      const p = this.anchorOf(id);
+      const p = this.anchorOf(id, true);
       if (p) out.push({ key: id, text: o.def.label, pos: p, kind: 'organ' });
     }
     return out;
