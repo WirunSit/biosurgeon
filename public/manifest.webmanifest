@@ -1,0 +1,12 @@
+{
+  "name": "BioSurgeon: ศัลยแพทย์ชีววิทยา",
+  "short_name": "BioSurgeon",
+  "description": "เกมจำลองการผ่าตัด 3 มิติ สำหรับชีววิทยา ม.ปลาย",
+  "start_url": "./",
+  "scope": "./",
+  "display": "fullscreen",
+  "orientation": "any",
+  "background_color": "#eef5f4",
+  "theme_color": "#0f8b8d",
+  "icons": [{ "src": "icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any maskable" }]
+}

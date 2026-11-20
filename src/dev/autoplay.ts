@@ -297,7 +297,10 @@ async function run(caseId: string, stopAt?: string): Promise<string> {
   const c: CaseDef = await (await fetch(`cases/${caseId}.json`)).json();
   const ans = answersOf(c);
   const games = minigamesOf(c);
-  for (let i = 0; i < 40 && !$('.lobby'); i++) await w(100);
+  for (let i = 0; i < 100 && !$('.lobby'); i++) {
+    $<HTMLButtonElement>('.boot-go')?.click();
+    await w(100);
+  }
   $$<HTMLButtonElement>('.seg-btn')[0]?.click();
   const nameIn = $<HTMLInputElement>('.lobby .text-in');
   if (nameIn && !nameIn.value) {
@@ -307,6 +310,11 @@ async function run(caseId: string, stopAt?: string): Promise<string> {
   const entry = (await (await fetch('cases/index.json')).json()).find((e: any) => e.id === caseId);
   $$<HTMLButtonElement>('.case-card').find((b) => $('b', b)?.textContent === `“${entry?.title}”`)?.click();
   await w(300);
+  // หน้าจอโหลดเคส (โมเดล + เชดเดอร์) — rAF อาจหยุดถ้าหน้าต่างถูกซ่อน จึงเดินเฟรมเองระหว่างรอ
+  for (let i = 0; i < 300 && $('.loading-screen'); i++) {
+    tick(1);
+    await w(50);
+  }
   await drainModals(ans, games, log);
 
   if (c.mode !== 'tutorial' && c.mode !== 'anatomy') {

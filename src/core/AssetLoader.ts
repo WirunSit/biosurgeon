@@ -57,3 +57,13 @@ export function loadModel(url: string, size: [number, number, number]): Promise<
     return g;
   });
 }
+
+/** โหลดโมเดลหลายไฟล์เข้าแคชล่วงหน้า (หน้าจอโหลดของแต่ละเคส) — onEach เรียกทุกครั้งที่ไฟล์หนึ่งเสร็จ */
+export function preloadModels(urls: string[], onEach?: () => void): Promise<void> {
+  return Promise.all(urls.map((u) => load(u).then(() => onEach?.()))).then(() => undefined);
+}
+
+/** ดึงไฟล์เก็บในแคชของเบราว์เซอร์ไว้ก่อน (ไม่ถอดรหัส) — ใช้กับเคสอื่นในระบบเดียวกันที่อาจเล่นต่อ */
+export function prefetch(urls: string[]): void {
+  for (const u of urls) void fetch(u, { priority: 'low' } as RequestInit).catch(() => undefined);
+}

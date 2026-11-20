@@ -20,6 +20,11 @@ import { showDebrief, showDiagnose, showInvestigate, showLobby, showPostOp, show
 import { applyUrlSettings, loadStudent, loadTeacher, recordResult } from './core/Results';
 import { askPin, showTeacher } from './ui/teacher';
 import { h, modal, toast } from './ui/dom';
+import { applyBodyClasses, device, deviceLabel } from './core/Device';
+import { preloadModels } from './core/AssetLoader';
+import { preloadCase, prefetchSystem } from './core/Preload';
+import { LoadingScreen, nextPaint } from './ui/loading';
+import { canFullscreen, enterFullscreen } from './ui/fullscreen';
 
 /** ฉากผ่าตัดที่มีให้ใช้ — ไฟล์เคส JSON อ้างถึงด้วย surgery.scene ("field" = สร้างจาก surgery.field ในไฟล์เคส) */
 const SCENES: Record<string, (c: CaseDef, reducedGore: boolean) => SurgeryScene> = {
@@ -38,9 +43,41 @@ async function fetchJSON<T>(url: string): Promise<T> {
   return (await res.json()) as T;
 }
 
+/** ให้ผู้เล่นบนจอสัมผัสแตะเริ่มก่อน: ขอเต็มจอได้ (ต้องมาจากการแตะ) และปลดล็อกเสียง */
+function startGate(ld: LoadingScreen): Promise<void> {
+  const params = new URLSearchParams(location.search);
+  if (!device.touch || params.has('autoplay') || params.has('nogate')) return Promise.resolve();
+  return new Promise((resolve) => {
+    const go = (full: boolean) => {
+      if (full) void enterFullscreen();
+      sfx.unlock();
+      resolve();
+    };
+    const row = h('div', { class: 'row boot-go-row' });
+    if (canFullscreen()) {
+      row.append(
+        h('button', { class: 'btn primary big boot-go', onclick: () => go(true) }, '⛶ เล่นแบบเต็มจอ'),
+        h('button', { class: 'btn big', onclick: () => go(false) }, 'เล่นในหน้าต่าง'),
+      );
+    } else row.append(h('button', { class: 'btn primary big boot-go', onclick: () => go(false) }, 'แตะเพื่อเริ่มเล่น'));
+    ld.append(row);
+    if (device.kind === 'phone') ld.append(h('p', { class: 'muted small' }, 'แนะนำ: เล่นแนวนอนจะเห็นแผลผ่าตัดกว้างกว่า'));
+  });
+}
+
 async function main(): Promise<void> {
+  // ---------- ตรวจอุปกรณ์ + โหลดพื้นฐานก่อนเข้าเกม ----------
+  applyBodyClasses();
+  document.getElementById('loading')?.remove();
+  const boot = new LoadingScreen('BioSurgeon', 'ศัลยแพทย์ชีววิทยา');
+  boot.set(0.05, 'กำลังตรวจสอบอุปกรณ์…');
+  boot.append(h('p', { class: 'device-badge' }, deviceLabel()));
+  await nextPaint();
   const sm = new SceneManager(document.getElementById('gl')!);
+  sm.covered = 'screen';
   const monitor = new VitalsMonitor();
+  boot.set(0.2, 'กำลังสร้างห้องผ่าตัด…');
+  await nextPaint();
   const room = buildRoom(sm.scene, monitor.canvas);
   const input = new InputManager(sm.canvas);
   if (import.meta.env.DEV) {
@@ -65,26 +102,49 @@ async function main(): Promise<void> {
   monitor.onBeat = () => {
     if (inSurgery && sound.on && vitals) sfx.beep(vitals.display().SpO2);
   };
+  let monUpload = 0;
   sm.addUpdater((dt) => {
     if (!vitals) return;
     if (!inSurgery) vitals.update(dt);
     monitor.update(dt, vitals.display());
-    room.monitorTexture.needsUpdate = true;
+    // จอมอนิเตอร์ในห้อง (พื้นผิว 3 มิติ) ส่งขึ้น GPU แค่ 15 ครั้ง/วินาที ก็ลื่นพอ
+    monUpload += dt;
+    if (monUpload >= 1 / 15) {
+      monUpload = 0;
+      room.monitorTexture.needsUpdate = true;
+    }
   });
 
+  boot.set(0.35, 'กำลังโหลดรายชื่อผู้ป่วย…');
   const index = await fetchJSON<CaseIndexEntry[]>('cases/index.json');
   const caseCache = new Map<string, Promise<CaseDef>>();
   const fetchCase = (id: string) => {
     if (!caseCache.has(id)) caseCache.set(id, fetchJSON<CaseDef>(`cases/${id}.json`));
     return caseCache.get(id)!;
   };
-  document.getElementById('loading')?.remove();
+  // ตัวถอดรหัสโมเดล (Draco) โหลดครั้งแรกใช้เวลา — เตรียมด้วยโมเดลชิ้นเล็กตั้งแต่ตอนนี้
+  boot.set(0.5, 'กำลังเตรียมตัวโหลดโมเดลอวัยวะ…');
+  await preloadModels([`${import.meta.env.BASE_URL}models/organs/appendix.glb`]);
+  boot.set(0.75, 'กำลังเตรียมกราฟิก…');
+  await nextPaint();
+  await sm.warmUp();
+  await document.fonts?.ready.catch(() => undefined);
+  boot.set(1, 'พร้อมแล้ว');
   if (import.meta.env.DEV) {
     const { autoplay, probe } = await import('./dev/autoplay');
     Object.assign((window as unknown as { __bs: object }).__bs, { autoplay, probe });
     const auto = new URLSearchParams(location.search).get('autoplay');
     if (auto) setTimeout(() => void autoplay(auto).then((r) => console.log(r)), 500);
   }
+  await startGate(boot);
+  await boot.close();
+  // หน้าจอเมนูบังฉาก 3 มิติ: วาดช้าลงมาก (ประหยัดแบต/ลดความร้อน)
+  const uiRoot = document.getElementById('ui')!;
+  const syncCovered = () => {
+    sm.covered = uiRoot.querySelector(':scope > .screen, :scope > .loading-screen') ? 'screen' : uiRoot.querySelector('.modal-back') ? 'modal' : null;
+  };
+  new MutationObserver(syncCovered).observe(uiRoot, { childList: true });
+  syncCovered();
 
   const prog = loadProgress();
   let teacher = applyUrlSettings(loadTeacher());
@@ -106,15 +166,28 @@ async function main(): Promise<void> {
     sound.on = choice.sound;
     sfx.enabled = choice.sound;
 
+    // ---------- โหลดก่อนเข้าเคส: อวัยวะ/รูปของระบบนั้น + คอมไพล์เชดเดอร์ + โครงสร้างค้นหาการคลิก ----------
+    const entry = index.find((e) => e.id === choice!.caseId);
+    const ld = new LoadingScreen(entry?.systemName ?? 'กำลังเตรียมเคส', entry ? `“${entry.title}”` : '', uiRoot);
+    ld.set(0.05, 'กำลังเปิดแฟ้มผู้ป่วย…');
     const c = await fetchCase(choice.caseId);
+    await preloadCase(c, (p) => ld.set(0.08 + p * 0.62, 'กำลังโหลดอวัยวะและภาพผลตรวจ…'));
     const tutorial = c.mode === 'tutorial' || c.mode === 'anatomy';
     const s = new Session(c, choice.difficulty, choice.reducedGore);
     vitals = new VitalsSim(c.vitals);
     const makeScene = SCENES[c.surgery.scene];
     if (!makeScene) throw new Error(`ไม่พบฉากผ่าตัด "${c.surgery.scene}"`);
+    ld.set(0.72, 'กำลังจัดห้องผ่าตัด…');
+    await nextPaint();
     const scene = makeScene(c, choice.reducedGore);
     sm.scene.add(scene.root);
     if (import.meta.env.DEV) (window as unknown as { __bs: Record<string, unknown> }).__bs.scene = scene;
+    await scene.ready?.();
+    ld.set(0.85, 'กำลังเตรียมกราฟิกเนื้อเยื่อ…');
+    await nextPaint();
+    await sm.warmUp();
+    await ld.close();
+    prefetchSystem(index, entry, fetchCase);
     void sm.flyTo(BEDSIDE, 1.6);
 
     if (tutorial) {
@@ -185,7 +258,9 @@ async function main(): Promise<void> {
 
 main().catch((err: unknown) => {
   console.error(err);
-  const el = document.getElementById('loading');
+  document.querySelectorAll('.loading-screen').forEach((x) => x.remove());
+  let el = document.getElementById('loading');
+  if (!el) document.body.append((el = h('div', { id: 'loading' })));
   const msg = err instanceof Error ? err.message : String(err);
-  if (el) el.innerHTML = `<div class="load-card"><h2>เปิดเกมไม่สำเร็จ</h2><p>${msg}</p><p>ต้องเปิดผ่านเว็บเซิร์ฟเวอร์ (เช่น <code>npm run dev</code>) ไม่ใช่ดับเบิลคลิกไฟล์ index.html</p></div>`;
+  el.innerHTML = `<div class="load-card"><h2>เปิดเกมไม่สำเร็จ</h2><p>${msg}</p><p>ต้องเปิดผ่านเว็บเซิร์ฟเวอร์ (เช่น <code>npm run dev</code>) ไม่ใช่ดับเบิลคลิกไฟล์ index.html</p></div>`;
 });

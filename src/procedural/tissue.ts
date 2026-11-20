@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { device } from '../core/Device';
 
 /**
  * วัสดุเนื้อเยื่อมีชีวิต: แทนสีเรียบแบบพลาสติกด้วยลวดลายที่สร้างในเชดเดอร์ (ไม่ต้องใช้ UV จึงใช้กับโมเดลทุกชิ้นได้)
@@ -252,12 +253,21 @@ diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.78, 0.6, 0.66
 float tVeinM = 0.0;
 if (tLook1.y > 0.0) {
   // เส้นเลือด: สันของ noise ที่ถูกบิด (domain warp) แล้วตัดเป็นช่วงด้วย noise อีกชั้น → เป็นกิ่งก้านปลายเรียว ไม่ใช่วงปิด
+  #ifdef TISSUE_LOW
+  // แบบเบา (โทรศัพท์): บิดลายด้วย noise ชั้นเดียว ไม่มีเส้นเลือดฝอยชั้นที่ 2–3
+  vec3 q = tp * 3.0 + 0.95 * tNoise(tp * 1.2) * vec3(1.0, -0.7, 0.4);
+  float w1 = 0.0;
+  #else
   vec3 q = tp * 3.0 + 0.95 * vec3(tNoise(tp * 1.2), tNoise(tp * 1.2 + 7.1), tNoise(tp * 1.2 + 13.3));
   float w1 = tNoise(tp * 1.7 + 21.0);
+  #endif
   float r1 = 1.0 - abs(tNoise(q));
   float m1 = smoothstep(0.05, 0.55, tNoise(tp * 0.8 + 5.0));
   float c1 = tLine(r1, 0.962 - 0.022 * w1, 0.99) * m1;
   float h1 = smoothstep(0.86, 0.975, r1) * m1;
+  #ifdef TISSUE_LOW
+  tVeinM = c1 * tLook1.y;
+  #else
   vec3 q2 = q * 2.4 + 3.1;
   float r2 = 1.0 - abs(tNoise(q2));
   float m2 = smoothstep(0.1, 0.6, tNoise(tp * 1.6 + 9.0)) * max(m1, 0.35);
@@ -265,6 +275,7 @@ if (tLook1.y > 0.0) {
   float r3 = 1.0 - abs(tNoise(q * 5.6 + 9.4));
   float c3 = tLine(r3, 0.978, 0.996) * smoothstep(0.15, 0.6, tNoise(tp * 2.6 + 2.0));
   tVeinM = clamp(c1 + 0.65 * c2 + 0.4 * c3, 0.0, 1.0) * tLook1.y;
+  #endif
   // เลือดใต้เยื่อบาง ๆ: รอบเส้นเลือดอมแดงจาง ๆ แล้วตัวเส้นเข้มกว่า
   diffuseColor.rgb *= 1.0 - 0.16 * h1 * tLook1.y;
   diffuseColor.rgb = mix(diffuseColor.rgb, tVein, tVeinM * 0.72);
@@ -275,23 +286,38 @@ diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(1.04, 0.74, 0.7
 float tLob = 0.0;
 float tLobH = 0.0;
 if (tLook1.z > 0.0) {
+  #ifdef TISSUE_LOW
+  // ลายกลีบแบบเบา: ใช้ noise แทน cellular (ไม่ต้องวน 27 รอบต่อพิกเซล)
+  float lb = tNoise(tp * 7.5);
+  tLob = (1.0 - smoothstep(0.0, 0.22, abs(lb))) * tLook1.z * TAA(7.5) * 0.7;
+  tLobH = lb * 0.3 * tLook1.z;
+  #else
   vec2 f = tCell(tp * 7.5 + 0.3 * vec3(tNoise(tp * 3.0), tNoise(tp * 3.0 + 4.0), 0.0));
   // ร่องระหว่างกลีบจางบ้างชัดบ้าง (ไม่เป็นตาข่ายสม่ำเสมอ) แต่ละกลีบนูนเป็นโดม
   tLob = (1.0 - smoothstep(0.0, 0.16, f.y - f.x)) * tLook1.z * TAA(7.5) * smoothstep(-0.5, 0.4, tNoise(tp * 2.3 + 17.0));
   tLobH = (0.5 - f.x) * tLook1.z;
+  #endif
   diffuseColor.rgb *= 1.0 - 0.2 * tLob + 0.14 * tLobH;
 }
 float tFib = 0.0;
 if (tLook2.x > 0.0) {
   vec3 pa = tp - tAxis * dot(tp, tAxis) * 0.94;
+  #ifdef TISSUE_LOW
+  tFib = tNoise(pa * 30.0) * 0.8 * TAA(30.0) * tLook2.x;
+  #else
   tFib = (tNoise(pa * 30.0) * 0.6 * TAA(30.0) + tNoise(pa * 70.0) * 0.4 * TAA(70.0)) * tLook2.x;
+  #endif
   diffuseColor.rgb *= 1.0 + 0.14 * tFib;
 }
 if (tLook2.y > 0.0) {
   float sp = smoothstep(0.62, 0.8, tNoise(tp * 24.0)) * smoothstep(-0.1, 0.5, tNoise(tp * 3.0 + 2.0)) * mix(0.35, 1.0, TAA(24.0));
   diffuseColor.rgb = mix(diffuseColor.rgb, diffuseColor.rgb * vec3(0.22, 0.2, 0.24), sp * tLook2.y);
 }
+#ifdef TISSUE_LOW
+float tFine = tNoise(tp * 22.0) * 0.8 * TAA(22.0);
+#else
 float tFine = tNoise(tp * 22.0) * 0.6 * TAA(22.0) + tNoise(tp * 48.0) * 0.4 * TAA(48.0);
+#endif
 float tH = tLook1.w * (0.55 * tMot + 0.18 * tFine) + tVeinM * 0.5 - tLob * 0.35 + tLobH * 1.2 + tFib * 0.45;
 float tWet = clamp(tLook2.z * (0.8 + 0.55 * tNoise(tp * 5.5 + 11.0)), 0.0, 1.0);
 `;
@@ -381,7 +407,8 @@ export function tissueMaterial(
     roughness: look.rough,
     clearcoat: look.wet,
     clearcoatRoughness: look.wetRough,
-    sheen: look.sheen,
+    // sheen คำนวณ BRDF เพิ่มอีกชุดต่อแสง — โหมดเบาตัดออก (ความเงาเปียกยังได้จาก clearcoat)
+    sheen: device.lightTissue ? 0 : look.sheen,
     sheenRoughness: 0.7,
     sheenColor: base.clone().multiplyScalar(0.45),
     ...params,
@@ -406,6 +433,7 @@ export function tissueMaterial(
     dRipA: { value: new THREE.Vector3(0, S * 0.35, S * 0.45) },
     dWave: { value: new THREE.Vector4() },
   };
+  if (device.lightTissue) mat.defines = { ...mat.defines, TISSUE_LOW: '' };
   mat.userData.tissue = u;
   mat.userData.tissueKind = kind;
   mat.customProgramCacheKey = () => 'tissue1';
@@ -446,7 +474,11 @@ export function tissueMaterial(
         // ชั้นเมือกเปียกมีผิวเป็นคลื่นเล็ก ๆ ของตัวเอง → ไฮไลต์แตกเป็นจุดระยิบ ไม่เรียบเหมือนพลาสติก
         `#include <clearcoat_normal_fragment_maps>
         #ifdef USE_CLEARCOAT
+          #ifdef TISSUE_LOW
+          clearcoatNormal = tPerturb(-vViewPosition, tN0, (tMot * 0.9 + tFine * 0.4 + tVeinM * 0.4) * tLook1.w * tBumpH * 1.4, tFace);
+          #else
           clearcoatNormal = tPerturb(-vViewPosition, tN0, (tMot * 0.9 + tNoise(tp * 11.0) * 0.45 + tVeinM * 0.4) * tLook1.w * tBumpH * 1.4, tFace);
+          #endif
         #endif`,
       )
       .replace(

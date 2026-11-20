@@ -10,6 +10,8 @@ import { TOOL_ICONS, avatarSVG, distractorIcon } from './art';
 import { bodyMapSVG } from './bodymaps';
 import { playMinigame } from './minigames';
 import { askChoice, h, modal, screen, shuffleInPlace, stars, toast } from './dom';
+import { device, deviceLabel, QUALITY_NAMES, setQualityPref, type QualityPref } from '../core/Device';
+import { fullscreenButton } from './fullscreen';
 
 // =====================================================================
 // ล็อบบี้โรงพยาบาล — บอร์ดผู้ป่วย 9 ระบบ × 2 เคส
@@ -72,6 +74,32 @@ export function showLobby(index: CaseIndexEntry[], prog: Progress, t: TeacherSet
         );
     };
     renderDiff();
+
+    // ระดับกราฟิก: อัตโนมัติตามอุปกรณ์ หรือเลือกเอง (โทรศัพท์ร้อน/กระตุก → ประหยัดพลังงาน)
+    const qRow = h('div', { class: 'seg seg-row', role: 'radiogroup', 'aria-label': 'ระดับกราฟิก' });
+    const qInfo = h('small', { class: 'muted device-line' });
+    const renderQ = () => {
+      qRow.innerHTML = '';
+      const opts: [QualityPref, string][] = [['auto', 'อัตโนมัติ'], ['low', QUALITY_NAMES.low], ['medium', QUALITY_NAMES.medium], ['high', QUALITY_NAMES.high]];
+      for (const [id, name] of opts)
+        qRow.append(
+          h(
+            'button',
+            {
+              class: `seg-btn ${device.pref === id ? 'on' : ''}`,
+              role: 'radio',
+              'aria-checked': String(device.pref === id),
+              onclick: () => {
+                setQualityPref(id);
+                renderQ();
+              },
+            },
+            h('b', {}, name),
+          ),
+        );
+      qInfo.textContent = `ตรวจพบ: ${deviceLabel()}`;
+    };
+    renderQ();
 
     const gore = h('input', { type: 'checkbox', id: 'gore' }) as HTMLInputElement;
     gore.checked = st.reducedGore;
@@ -157,7 +185,8 @@ export function showLobby(index: CaseIndexEntry[], prog: Progress, t: TeacherSet
           'header',
           { class: 'brand' },
           h('div', { class: 'logo', html: '<svg viewBox="0 0 48 48"><circle cx="24" cy="24" r="22" fill="#0f8b8d"/><path d="M24 11v26M11 24h26" stroke="#fff" stroke-width="6" stroke-linecap="round"/></svg>' }),
-          h('div', {}, h('h1', {}, 'BioSurgeon'), h('p', {}, 'ศัลยแพทย์ชีววิทยา — โรงพยาบาลจำลองสำหรับชีววิทยา ม.ปลาย')),
+          h('div', { class: 'brand-text' }, h('h1', {}, 'BioSurgeon'), h('p', {}, 'ศัลยแพทย์ชีววิทยา — โรงพยาบาลจำลองสำหรับชีววิทยา ม.ปลาย')),
+          fullscreenButton('btn'),
         ),
         h(
           'div',
@@ -179,6 +208,9 @@ export function showLobby(index: CaseIndexEntry[], prog: Progress, t: TeacherSet
             diffRow,
             h('label', { class: 'check' }, gore, ' โหมดลดความสมจริง (เลือดเป็นสีฟ้าพาสเทล)'),
             h('label', { class: 'check' }, snd, ' เปิดเสียงมอนิเตอร์และเอฟเฟกต์'),
+            h('label', { class: 'field-label' }, 'กราฟิก'),
+            qRow,
+            qInfo,
             h('div', { class: 'row' }, codexBtn, creditBtn, teacherBtn),
           ),
           h('section', { class: 'panel board-panel' }, h('h2', {}, 'บอร์ดผู้ป่วย — เลือกเคส'), board),

@@ -141,6 +141,8 @@ export class FieldScene implements SurgeryScene {
   private camMovedAt = 0;
   /** เวลาเฟรมล่าสุดที่คำนวณจุดที่มองเห็นได้ใหม่ (จำกัดงานของป้ายชื่อเฟรมละ 1 ชิ้น) */
   private anchorWorkAt = -1;
+  /** การโหลดโมเดลที่ยังค้างอยู่ (ready() รอให้ครบ) */
+  private loading: Promise<unknown>[] = [];
   private lastCam = new THREE.Vector3();
 
   constructor(
@@ -496,7 +498,7 @@ export class FieldScene implements SurgeryScene {
       // โมเดลอวัยวะจริง (BodyParts3D) แทนรูปทรงพื้นฐาน — ถ้าโหลดไม่ได้ก็ใช้รูปทรงเดิมต่อ
       // โมเดลใช้แสดงผลอย่างเดียว การคลิกยังใช้รูปทรงเดิม (มองไม่เห็น) ขั้นตอนที่ทดสอบไว้จึงคลิกได้เหมือนเดิม
       // และโมเดลชิ้นใหญ่จะไม่บังการคลิกอวัยวะข้างเคียง
-      loadModel(`${import.meta.env.BASE_URL}${d.model}`, s).then((model) => {
+      const job = loadModel(`${import.meta.env.BASE_URL}${d.model}`, s).then((model) => {
         if (!model) return;
         if (d.modelRot) model.rotation.set(...(d.modelRot.map((x) => THREE.MathUtils.degToRad(x)) as [number, number, number]));
         // กันอวัยวะโผล่ทะลุชั้นเนื้อเยื่อ: ถ้าส่วนบนของโมเดลจะสูงกว่าชั้นล่างสุด ให้ย่อทั้งชิ้น (คงสัดส่วนจริง)
@@ -536,6 +538,7 @@ export class FieldScene implements SurgeryScene {
           o.dyn.waveLen = Math.max(ms.x, ms.y, ms.z) * 0.45;
         }
       });
+      this.loading.push(job);
     }
   }
 
@@ -547,7 +550,7 @@ export class FieldScene implements SurgeryScene {
     const d = o.def;
     const A = d.atlasFrame ?? this.def.atlas!;
     const k = A.scale ?? 1;
-    loadModelRaw(`${import.meta.env.BASE_URL}${d.model}`).then((model) => {
+    const job = loadModelRaw(`${import.meta.env.BASE_URL}${d.model}`).then((model) => {
       if (!model) return;
       // จุด native p → โลก: O + R·(p − origin)·k  (O = ใต้กึ่งกลางหน้าต่าง ลึก depth)
       o.inner.updateWorldMatrix(true, false);
@@ -601,6 +604,7 @@ export class FieldScene implements SurgeryScene {
       }
       this.visAnchor.delete(d.id);
     });
+    this.loading.push(job);
   }
 
   /**
@@ -1612,6 +1616,12 @@ export class FieldScene implements SurgeryScene {
       return true;
     });
     void this.camera;
+  }
+
+  /** รอโมเดลทุกชิ้นติดตั้งเสร็จ แล้วสร้าง BVH ของตัวรับคลิกไว้ก่อน (ตอนหน้าจอโหลด ไม่ใช่ตอนแตะครั้งแรก) */
+  async ready(): Promise<void> {
+    await Promise.all(this.loading);
+    ensureBVH(this.pickables);
   }
 
   dispose(): void {

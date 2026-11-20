@@ -68,5 +68,7 @@ export interface SurgeryScene {
   /** จุดที่ปากคีบจับอยู่ (โลก) — ให้เครื่องมือแสดงตรงจุดที่จับ */
   gripPoint?(): THREE.Vector3 | null;
   update(dt: number, t: number, camera: THREE.Camera): void;
+  /** รอให้ฉากพร้อม (โหลดโมเดล สร้างโครงสร้างค้นหาการคลิก) — เรียกตอนหน้าจอโหลด */
+  ready?(): Promise<void>;
   dispose(): void;
 }

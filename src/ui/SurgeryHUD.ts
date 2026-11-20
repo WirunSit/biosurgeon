@@ -4,6 +4,8 @@ import { TOOL_NAMES } from '../procedural/tools';
 import { TOOL_ICONS } from './art';
 import { h, ui } from './dom';
 import type { LabelAnchor } from '../core/SurgeryScene';
+import { device } from '../core/Device';
+import { fullscreenButton } from './fullscreen';
 
 export type Speaker = 'nurse' | 'anesth' | 'attending' | 'system';
 
@@ -30,6 +32,9 @@ export class SurgeryHUD {
   private toolBtns = new Map<ToolId, HTMLButtonElement>();
   private lastMsg = new Map<string, number>();
   private teachTimer = 0;
+  private timerText = '';
+  /** โทรศัพท์: ปุ่มเป็นไอคอนสั้น ๆ แถวเดียว ไม่บังแผล */
+  private readonly phone = device.kind === 'phone';
   /** การ์ดความรู้ถูกย่อเหลือแถบหัว (จำไว้ข้ามด่าน) */
   private teachMin = false;
   labelsOn: boolean;
@@ -60,19 +65,25 @@ export class SurgeryHUD {
       tray.append(b);
     });
 
-    const labelBtn = h('button', { class: `btn small ${labelsOn ? 'on' : ''}` }, 'ป้ายชื่อ (L)');
+    const P = this.phone;
+    const T = device.touch;
+    const labelBtn = h('button', { class: `btn small ${labelsOn ? 'on' : ''}`, title: 'ป้ายชื่อ (L)', 'aria-label': 'ป้ายชื่อ' }, P ? '🏷' : T ? 'ป้ายชื่อ' : 'ป้ายชื่อ (L)');
     labelBtn.addEventListener('click', () => {
       this.labelsOn = !this.labelsOn;
       labelBtn.classList.toggle('on', this.labelsOn);
     });
-    const soundBtn = h('button', { class: `btn small ${soundOn ? 'on' : ''}` }, 'เสียง');
+    const soundBtn = h('button', { class: `btn small ${soundOn ? 'on' : ''}`, 'aria-label': 'เสียง' }, P ? '🔊' : 'เสียง');
     // โหมดสอน: ซ่อนคำสั่ง ข้อความ และการ์ดความรู้ ให้เห็นโมเดลเต็มจอขณะครูอธิบาย
-    const cleanBtn = h('button', { class: 'btn small', title: 'ซ่อน/แสดงแผงข้อความทั้งหมด (T)' }, 'ซ่อนข้อความ (T)');
+    const cleanBtn = h('button', { class: 'btn small', title: 'ซ่อน/แสดงแผงข้อความทั้งหมด (T)', 'aria-label': 'ซ่อนข้อความ' }, P ? '👁' : T ? 'ซ่อนข้อความ' : 'ซ่อนข้อความ (T)');
     cleanBtn.addEventListener('click', () => {
       const on = this.el.classList.toggle('clean');
       cleanBtn.classList.toggle('on', on);
     });
     this.toggleClean = () => cleanBtn.click();
+    this.toggleLabels = () => labelBtn.click();
+    // โทรศัพท์: คำสั่งยาวถูกตัดเหลือ 3 บรรทัด แตะการ์ดเพื่ออ่านทั้งหมด
+    const stepCard = h('div', { class: 'step-card' }, this.stepCount, this.stepText, this.stepTool, h('div', { class: 'step-progress' }, this.bar));
+    stepCard.addEventListener('click', () => stepCard.classList.toggle('expanded'));
     let snd = soundOn;
     soundBtn.addEventListener('click', () => {
       snd = !snd;
@@ -83,21 +94,23 @@ export class SurgeryHUD {
     this.el = h(
       'div',
       { class: 'hud' },
-      h('div', { class: 'hud-top' }, h('div', { class: 'step-card' }, this.stepCount, this.stepText, this.stepTool, h('div', { class: 'step-progress' }, this.bar)), this.stepsBar),
+      h('div', { class: 'hud-top' }, stepCard, this.stepsBar),
       h('div', { class: 'hud-right' }, monitorEl, tray),
       this.log,
       this.teach,
       h(
         'div',
         { class: 'hud-bar' },
-        h('button', { class: 'btn small hint', onclick: () => this.onHint?.() }, 'ขอคำใบ้ (H)'),
-        h('button', { class: 'btn small', onclick: () => this.onTool?.(null) }, 'วางเครื่องมือ (Esc)'),
+        h('button', { class: 'btn small hint', onclick: () => this.onHint?.(), 'aria-label': 'ขอคำใบ้' }, P ? '💡 คำใบ้' : T ? 'ขอคำใบ้' : 'ขอคำใบ้ (H)'),
+        h('button', { class: 'btn small', onclick: () => this.onTool?.(null), title: 'วางเครื่องมือ (Esc)', 'aria-label': 'วางเครื่องมือ' }, P ? '✋' : T ? 'วางเครื่องมือ' : 'วางเครื่องมือ (Esc)'),
         labelBtn,
         cleanBtn,
-        h('button', { class: 'btn small', onclick: () => this.onZoom?.(-1), 'aria-label': 'ซูมเข้า' }, '＋'),
-        h('button', { class: 'btn small', onclick: () => this.onZoom?.(1), 'aria-label': 'ซูมออก' }, '－'),
-        h('button', { class: 'btn small', onclick: () => this.onResetView?.(), title: 'กลับมุมมองเดิม (R) — คลิกขวาลาก = หมุน, คลิกกลางลาก = เลื่อน' }, 'มุมเดิม (R)'),
-        this.padButtons(),
+        // โทรศัพท์ใช้สองนิ้วบีบ/ลากแทนปุ่มซูมและปุ่มลูกศร
+        P ? '' : h('button', { class: 'btn small', onclick: () => this.onZoom?.(-1), 'aria-label': 'ซูมเข้า' }, '＋'),
+        P ? '' : h('button', { class: 'btn small', onclick: () => this.onZoom?.(1), 'aria-label': 'ซูมออก' }, '－'),
+        h('button', { class: 'btn small', onclick: () => this.onResetView?.(), title: 'กลับมุมมองเดิม (R) — คลิกขวาลาก = หมุน, คลิกกลางลาก = เลื่อน', 'aria-label': 'มุมเดิม' }, P ? '⟲' : T ? 'มุมเดิม' : 'มุมเดิม (R)'),
+        P ? '' : this.padButtons(),
+        fullscreenButton('btn small', P),
         soundBtn,
         this.timer,
       ),
@@ -105,8 +118,10 @@ export class SurgeryHUD {
     );
     this.el.prepend(this.scopeMask);
     try {
-      this.teachMin = localStorage.getItem('bs.teachMin') === '1';
-      const pos = JSON.parse(localStorage.getItem('bs.teachPos') ?? 'null') as [number, number] | null;
+      const min = localStorage.getItem('bs.teachMin');
+      // โทรศัพท์: การ์ดความรู้เริ่มแบบย่อ (แตะ "ขยาย" เพื่ออ่าน) ไม่บังแผล
+      this.teachMin = min === null ? this.phone : min === '1';
+      const pos = this.phone ? null : (JSON.parse(localStorage.getItem('bs.teachPos') ?? 'null') as [number, number] | null);
       if (pos) this.placeTeach(pos[0], pos[1]);
     } catch {
       /* เบราว์เซอร์ปิด localStorage — ใช้ตำแหน่งเริ่มต้น */
@@ -141,6 +156,9 @@ export class SurgeryHUD {
   }
 
   setTimer(text: string, over: boolean): void {
+    // เรียกทุกเฟรม: แก้ DOM เฉพาะเมื่อข้อความเปลี่ยน (วินาทีละครั้ง)
+    if (text === this.timerText) return;
+    this.timerText = text;
     this.timer.textContent = `⏱ ${text}`;
     this.timer.classList.toggle('over', over);
   }
@@ -153,11 +171,12 @@ export class SurgeryHUD {
     this.lastMsg.set(key, now);
     const item = h('div', { class: `msg ${who} tone-${tone}` }, h('b', {}, SPEAKERS[who]), h('span', {}, msg));
     this.log.append(item);
-    while (this.log.children.length > 4) this.log.firstChild!.remove();
-    setTimeout(() => item.classList.add('old'), 9000);
+    while (this.log.children.length > (this.phone ? 2 : 4)) this.log.firstChild!.remove();
+    setTimeout(() => item.classList.add('old'), this.phone ? 5000 : 9000);
   }
 
   toggleClean: () => void = () => {};
+  toggleLabels: () => void = () => {};
 
   /** ปุ่มลูกศรเลื่อนมุมมอง (กดค้าง = เลื่อนต่อเนื่อง) */
   private padButtons(): HTMLElement {

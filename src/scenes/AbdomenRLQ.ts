@@ -836,6 +836,10 @@ export class AbdomenRLQScene implements SurgeryScene {
     });
   }
 
+  async ready(): Promise<void> {
+    ensureBVH(this.pickables);
+  }
+
   dispose(): void {
     this.root.parent?.remove(this.root);
     this.root.traverse((o) => {

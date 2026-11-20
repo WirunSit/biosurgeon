@@ -14,6 +14,7 @@ import { SurgeryHUD } from '../ui/SurgeryHUD';
 import { askChoice, h, modal } from '../ui/dom';
 import { BASIC_TOOLS, SPECIAL_TOOLS, TOOL_NAMES } from '../procedural/tools';
 import { playMinigame } from '../ui/minigames';
+import { device } from '../core/Device';
 
 /** เครื่องมือในถาด: ชุดพื้นฐาน + เครื่องมือเฉพาะที่เคสนี้ใช้ */
 export function caseTools(c: CaseDef): ToolId[] {
@@ -117,10 +118,18 @@ export async function runSurgery(opts: {
   const GRASP = new Set<ToolId>(['forceps', 'clamp']);
   const bleeds: Bleed[] = [];
   // จอเกือบจัตุรัสถอยกล้องออกเล็กน้อย ให้เห็นทั้งหน้าต่างผ่าตัดโดยไม่ชนถาดเครื่องมือ
-  const aspect = window.innerWidth / window.innerHeight;
-  let zoom = aspect >= 1 ? THREE.MathUtils.clamp(1.78 / aspect, 1, 1.4) : 1;
+  // โทรศัพท์แนวตั้ง: จอแคบ เข้าใกล้แผลขึ้น ให้อวัยวะใหญ่พอแตะได้แม่น
+  const zoomFor = () => {
+    const aspect = window.innerWidth / window.innerHeight;
+    // โทรศัพท์แนวนอน: จอเตี้ย แผลจะเล็ก → เข้าใกล้มากขึ้น
+    if (device.kind === 'phone') return aspect >= 1 ? 0.62 : 0.8;
+    return aspect >= 1 ? THREE.MathUtils.clamp(1.78 / aspect, 1, 1.4) : 1;
+  };
+  let zoom0 = zoomFor();
+  let zoom = zoom0;
   const unit = scene.unit ?? 1;
-  const adjust = (p: { pos: THREE.Vector3; target: THREE.Vector3 }) => {
+  const adjust = (raw: { pos: THREE.Vector3; target: THREE.Vector3 }) => {
+    const p = { pos: raw.pos.clone(), target: raw.target.clone() };
     if (window.innerWidth < window.innerHeight) {
       // จอแนวตั้ง: ถาดเครื่องมืออยู่ด้านล่าง จึงจัดแผลไว้กลางจอค่อนขึ้นบน
       const shift = new THREE.Vector3(-0.038, 0, 0.03).multiplyScalar(unit);
@@ -129,7 +138,9 @@ export async function runSurgery(opts: {
     }
     return p;
   };
-  let base = adjust(scene.fieldPose());
+  /** มุมกล้องของฉาก (ก่อนปรับตามรูปจอ) — เก็บไว้จัดใหม่เมื่อหมุนจอ */
+  let rawBase = scene.fieldPose();
+  let base = adjust(rawBase);
   // มุมมองที่ผู้เล่น/ครูปรับเอง: หมุนรอบจุดที่มอง (yaw/pitch), เลื่อน (pan), ซูม — R = กลับมุมเดิม
   let yaw = 0;
   let pitch = 0;
@@ -142,8 +153,9 @@ export async function runSurgery(opts: {
     pan.set(0, 0, 0);
   };
   scene.onPose = (p) => {
-    base = adjust({ pos: p.pos.clone(), target: p.target.clone() });
-    zoom = 1;
+    rawBase = { pos: p.pos.clone(), target: p.target.clone() };
+    base = adjust(rawBase);
+    zoom = zoom0 < 1 ? zoom0 : 1;
     resetView();
     void sm.flyTo(base, 1.2);
   };
@@ -229,7 +241,7 @@ export async function runSurgery(opts: {
         refreshBleeding();
       }
       if (diff === 'easy' && step.tool && tools.held !== step.tool)
-        hud.say('nurse', `ส่ง${TOOL_NAMES[step.tool]}ให้ค่ะหมอ (เลือกจากถาดด้านขวา)`);
+        hud.say('nurse', `ส่ง${TOOL_NAMES[step.tool]}ให้ค่ะหมอ (เลือกจากถาดเครื่องมือ)`);
     },
     stepComplete(step, info) {
       sfx.good();
@@ -323,6 +335,35 @@ export async function runSurgery(opts: {
     ray.setFromCamera(input.ndc, sm.camera);
     hit = scene.pick(ray);
   };
+  /**
+   * ช่วยเล็งบนจอสัมผัส: นิ้วใหญ่กว่าเมาส์และบังจุดที่แตะ ถ้าแตะพลาดเป้าหมายของขั้นนี้ไปเล็กน้อย (≤ ~7 มม. บนจอ)
+   * ให้นับเป็นเป้าหมาย — แต่ถ้านิ้วแตะโดนโครงสร้างที่ห้ามแตะ (เช่น เส้นประสาท) จะไม่ช่วย ยังนับเป็นความผิดตามจริง
+   */
+  const ASSIST_ACTIONS = new Set(['click', 'hold', 'drag', 'rotate', 'sequence']);
+  const assistTouch = () => {
+    const step = engine.current;
+    const want = engine.expectedTarget;
+    if (input.pointerType === 'mouse' || !step || !want || !ASSIST_ACTIONS.has(step.action) || tools.held !== step.tool) return;
+    if (scene.matches(want, hit)) return;
+    if (hit.targetId && step.mistakes?.some((m) => m.target === hit.targetId)) return;
+    const r = sm.canvas.getBoundingClientRect();
+    const ndc = new THREE.Vector2();
+    for (const px of [12, 22, 32]) {
+      for (let k = 0; k < 8; k++) {
+        const a = (k / 8) * Math.PI * 2;
+        ndc.set(input.ndc.x + (Math.cos(a) * px * 2) / r.width, input.ndc.y + (Math.sin(a) * px * 2) / r.height);
+        ray.setFromCamera(ndc, sm.camera);
+        const h2 = scene.pick(ray);
+        if (scene.matches(want, h2)) {
+          // ใช้เป้าหมาย/จุดที่โดน แต่คงพิกัดผิว (uv) ของนิ้วจริงไว้ การลากจึงไม่กระโดด
+          hit = { ...h2, uv: hit.uv ?? h2.uv };
+          ray.setFromCamera(input.ndc, sm.camera);
+          return;
+        }
+      }
+    }
+    ray.setFromCamera(input.ndc, sm.camera);
+  };
   const holdTool = (id: ToolId | null) => {
     tools.pick(id);
     hud.setHeld(id);
@@ -357,6 +398,7 @@ export async function runSurgery(opts: {
     if (paused) return;
     sfx.unlock();
     updateHit();
+    assistTouch();
     if (tools.held) scene.touch?.(hit.targetId, hit.point);
     engine.pointerDown(hit, ray, tools.held);
     // ปากคีบ/คีมจับอวัยวะ: อวัยวะติดเครื่องมือยกขึ้นมาตามมือ
@@ -386,7 +428,11 @@ export async function runSurgery(opts: {
     yaw -= dx * 0.006;
     pitch -= dy * 0.006;
     const phi0 = new THREE.Spherical().setFromVector3(base.pos.clone().sub(base.target)).phi;
-    pitch = THREE.MathUtils.clamp(pitch, 0.05 - phi0, 1.35 - phi0);
+    if (device.limitedOrbit) {
+      // โทรศัพท์: เอียงดูได้รอบแผลพอเห็นด้านข้างอวัยวะ (±30° ซ้าย-ขวา) ไม่หมุนรอบตัวจนหลงทิศ
+      yaw = THREE.MathUtils.clamp(yaw, -0.52, 0.52);
+      pitch = THREE.MathUtils.clamp(pitch, Math.max(0.05 - phi0, -0.3), Math.min(1.35 - phi0, 0.35));
+    } else pitch = THREE.MathUtils.clamp(pitch, 0.05 - phi0, 1.35 - phi0);
     applyZoom();
   };
   input.onPan = (dx, dy) => {
@@ -413,13 +459,27 @@ export async function runSurgery(opts: {
     applyZoom();
   };
   hud.onPanStep = panStep;
+  // หมุนจอ (แนวตั้ง ↔ แนวนอน): จัดกรอบภาพใหม่ คงระดับซูมที่ผู้เล่นปรับไว้
+  const onResize = () => {
+    const z0 = zoomFor();
+    zoom = THREE.MathUtils.clamp((zoom * z0) / zoom0, ZOOM_MIN, ZOOM_MAX);
+    zoom0 = z0;
+    base = adjust(rawBase);
+    if (!paused) applyZoom();
+  };
+  window.addEventListener('resize', onResize);
   // ไม่ได้ถือเครื่องมือ: ลากคลิกซ้ายเพื่อเลื่อนมุมมอง
   input.leftPans = () => !tools.held && !paused;
-  input.onPinch = (ratio) => {
-    if (!paused) zoomAt(1 / ratio, null);
+  input.onPinch = (ratio, center) => {
+    if (paused) return;
+    // ซูมเข้าตรงจุดกึ่งกลางระหว่างสองนิ้ว
+    ray.setFromCamera(center, sm.camera);
+    zoomAt(1 / ratio, scene.pick(ray).point);
   };
+  // จอสัมผัส: ไม่ได้ถือเครื่องมือ นิ้วเดียวลาก = หมุนมุมมอง
+  input.touchOrbits = () => !tools.held && !paused;
   hud.onResetView = () => {
-    zoom = 1;
+    zoom = zoom0 < 1 ? zoom0 : 1;
     resetView();
     void sm.flyTo(viewPose(), 0.6);
   };
@@ -434,7 +494,7 @@ export async function runSurgery(opts: {
       if (d) panStep(d[0], d[1]);
     }
     else if (e.key === 'h' || e.key === 'H' || e.key === 'ห') hud.onHint?.();
-    else if (e.key === 'l' || e.key === 'L' || e.key === 'ส') (hud.el.querySelector('.hud-bar .btn:nth-child(3)') as HTMLButtonElement)?.click();
+    else if (e.key === 'l' || e.key === 'L' || e.key === 'ส') hud.toggleLabels();
     else {
       const idx = e.key === '0' ? 9 : e.key === '-' ? 10 : Number(e.key) - 1;
       if (idx >= 0 && idx < trayTools.length && /^[0-9-]$/.test(e.key)) holdTool(trayTools[idx]);
@@ -456,10 +516,14 @@ export async function runSurgery(opts: {
         h(
           'ul',
           { class: 'howto' },
-          h('li', {}, 'เลือกเครื่องมือจากถาดด้านขวา (หรือกดปุ่มตัวเลข 1–9, 0, -)'),
-          h('li', {}, 'คลิก / แตะ / ลาก บนแผลตามคำสั่ง — คลิกขวาหรือกด Esc เพื่อวางเครื่องมือ'),
+          device.touch
+            ? h('li', {}, 'แตะเลือกเครื่องมือจากถาด แล้วแตะ / ลาก บนแผลตามคำสั่ง — ปุ่ม ✋ = วางเครื่องมือ')
+            : h('li', {}, 'เลือกเครื่องมือจากถาดด้านขวา (หรือกดปุ่มตัวเลข 1–9, 0, -)'),
+          device.touch ? '' : h('li', {}, 'คลิก / แตะ / ลาก บนแผลตามคำสั่ง — คลิกขวาหรือกด Esc เพื่อวางเครื่องมือ'),
           lab ? h('li', {}, 'กด L เพื่อเปิด/ปิดป้ายชื่อ อวัยวะที่ระบุแล้วจะมีป้ายชื่อติดไว้') : h('li', {}, 'ดูจอสัญญาณชีพด้านขวาบน ถ้าเลือดออกต้องรีบแก้ไข'),
-          h('li', {}, 'ล้อเมาส์ = ซูมเข้าตรงจุดที่ชี้ • ปุ่มลูกศร (บนคีย์บอร์ดหรือมุมขวาล่าง) หรือวางเครื่องมือแล้วลากคลิกซ้าย = เลื่อนซ้าย-ขวา/ขึ้น-ลง • คลิกขวาค้างแล้วลาก = หมุนมุมมอง • R = กลับมุมเดิม • T = ซ่อนแผงข้อความ (จอสัมผัส: สองนิ้วบีบ/เลื่อน)'),
+          device.touch
+            ? h('li', {}, 'สองนิ้วบีบ = ซูม • สองนิ้วลาก = เลื่อน • วางเครื่องมือแล้วนิ้วเดียวลาก = เอียงมุมมอง • ⟲ = กลับมุมเดิม • 👁 = ซ่อนข้อความ')
+            : h('li', {}, 'ล้อเมาส์ = ซูมเข้าตรงจุดที่ชี้ • ปุ่มลูกศร (บนคีย์บอร์ดหรือมุมขวาล่าง) หรือวางเครื่องมือแล้วลากคลิกซ้าย = เลื่อนซ้าย-ขวา/ขึ้น-ลง • คลิกขวาค้างแล้วลาก = หมุนมุมมอง • R = กลับมุมเดิม • T = ซ่อนแผงข้อความ'),
         ),
       ),
       buttons: [{ label: caseDef.mode === 'tutorial' ? 'เริ่มฝึก' : lab ? 'เริ่มผ่า' : 'เริ่มผ่าตัด', value: 1, primary: true }],
@@ -505,9 +569,10 @@ export async function runSurgery(opts: {
   // ---------- จบการผ่าตัด ----------
   stopUpdater();
   window.removeEventListener('keydown', onKey);
+  window.removeEventListener('resize', onResize);
   input.onDown = input.onMove = input.onUp = input.onCancel = undefined;
   input.onWheel = input.onOrbit = input.onPan = input.onPinch = undefined;
-  input.leftPans = undefined;
+  input.leftPans = input.touchOrbits = undefined;
   holdTool(null);
   tools.dispose();
   s.surgeryTimeSec = elapsed;

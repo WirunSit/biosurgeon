@@ -4,6 +4,7 @@ import * as THREE from 'three';
  * รวมเมาส์ / ทัช / ปากกา เป็นเหตุการณ์เดียว (Pointer Events) และคำนวณพิกัด NDC สำหรับ raycast
  * ปุ่มซ้าย/นิ้วเดียว = ใช้เครื่องมือ, คลิกขวาลาก = หมุนมุมมอง (คลิกขวาเฉย ๆ = วางเครื่องมือ),
  * คลิกกลางลาก หรือ Shift + คลิกขวาลาก = เลื่อนมุมมอง, ล้อเมาส์ = ซูม, สองนิ้ว = บีบซูม + เลื่อน
+ * จอสัมผัส: ไม่ได้ถือเครื่องมือ นิ้วเดียวลาก = หมุนมุมมอง (แตะเฉย ๆ ยังเป็นการแตะ)
  */
 export class InputManager {
   readonly ndc = new THREE.Vector2(9, 9);
@@ -22,8 +23,12 @@ export class InputManager {
   onOrbit?: (dx: number, dy: number) => void;
   /** ลากเลื่อนมุมมอง (พิกเซล) */
   onPan?: (dx: number, dy: number) => void;
-  /** บีบสองนิ้ว: อัตราส่วนระยะห่างนิ้ว (>1 = กางออก/ซูมเข้า) */
-  onPinch?: (ratio: number) => void;
+  /** บีบสองนิ้ว: อัตราส่วนระยะห่างนิ้ว (>1 = กางออก/ซูมเข้า) และจุดกึ่งกลางนิ้ว (NDC) */
+  onPinch?: (ratio: number, center: THREE.Vector2) => void;
+  /** คืนค่า true = นิ้วเดียวลากเพื่อหมุนมุมมอง (จอสัมผัส ตอนไม่ได้ถือเครื่องมือ) */
+  touchOrbits?: () => boolean;
+  /** ชนิดอุปกรณ์ชี้ล่าสุด: 'mouse' | 'touch' | 'pen' */
+  pointerType = 'mouse';
   /** คืนค่า true = ลากคลิกซ้ายเพื่อเลื่อนมุมมอง (เช่น ตอนไม่ได้ถือเครื่องมือ) — คลิกเฉย ๆ ยังเป็นคลิกปกติ */
   leftPans?: () => boolean;
 
@@ -35,6 +40,7 @@ export class InputManager {
     el.style.touchAction = 'none';
     el.addEventListener('pointerdown', (e) => {
       if (!this.enabled) return;
+      this.pointerType = e.pointerType || 'mouse';
       if (e.pointerType === 'touch') {
         this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (this.touches.size === 2) {
@@ -43,6 +49,8 @@ export class InputManager {
             this.down = false;
             this.onUp?.();
           }
+          // นิ้วแรกกำลังหมุนมุมมอง: ยกเลิก ไม่ให้นับเป็นการแตะตอนยกนิ้ว
+          if (this.view) this.view.moved = 1e9;
           this.pinchDist = this.touchSpread();
           return;
         }
@@ -60,18 +68,28 @@ export class InputManager {
         this.view = { mode: 'pan', x: e.clientX, y: e.clientY, moved: 0, id: e.pointerId, left: true };
         return;
       }
+      if (e.pointerType !== 'mouse' && this.touchOrbits?.()) {
+        this.update(e);
+        this.view = { mode: 'orbit', x: e.clientX, y: e.clientY, moved: 0, id: e.pointerId, left: true };
+        return;
+      }
       this.update(e);
       this.down = true;
       this.onDown?.();
     });
     el.addEventListener('pointermove', (e) => {
+      if (e.pointerType) this.pointerType = e.pointerType;
       if (e.pointerType === 'touch' && this.touches.has(e.pointerId)) {
         const center0 = this.touchCenter();
         this.touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
         if (this.touches.size >= 2) {
           const c1 = this.touchCenter();
           const d = this.touchSpread();
-          if (this.pinchDist > 0 && d > 0) this.onPinch?.(d / this.pinchDist);
+          if (this.pinchDist > 0 && d > 0) {
+            const r = this.el.getBoundingClientRect();
+            const ndc = new THREE.Vector2(((c1.x - r.left) / r.width) * 2 - 1, -((c1.y - r.top) / r.height) * 2 + 1);
+            this.onPinch?.(d / this.pinchDist, ndc);
+          }
           this.pinchDist = d;
           this.onPan?.(c1.x - center0.x, c1.y - center0.y);
           return;
@@ -83,7 +101,7 @@ export class InputManager {
         this.view.x = e.clientX;
         this.view.y = e.clientY;
         this.view.moved += Math.abs(dx) + Math.abs(dy);
-        if (this.view.moved > 4) (this.view.mode === 'pan' ? this.onPan : this.onOrbit)?.(dx, dy);
+        if (this.view.moved > this.slop()) (this.view.mode === 'pan' ? this.onPan : this.onOrbit)?.(dx, dy);
         return;
       }
       this.update(e);
@@ -96,9 +114,9 @@ export class InputManager {
       }
       if (this.view && e.pointerId === this.view.id) {
         // คลิกขวาโดยไม่ลาก = วางเครื่องมือ (เหมือนเดิม)
-        if (this.view.mode === 'orbit' && this.view.moved <= 4 && e.type === 'pointerup') this.onCancel?.();
-        // คลิกซ้ายโดยไม่ลาก = คลิกปกติ
-        if (this.view.left && this.view.moved <= 4 && e.type === 'pointerup' && this.enabled) {
+        if (this.view.mode === 'orbit' && !this.view.left && this.view.moved <= 4 && e.type === 'pointerup') this.onCancel?.();
+        // คลิกซ้าย/แตะโดยไม่ลาก = คลิกปกติ
+        if (this.view.left && this.view.moved <= this.slop() && e.type === 'pointerup' && this.enabled) {
           this.update(e);
           this.onDown?.();
           this.onUp?.();
@@ -127,6 +145,11 @@ export class InputManager {
       },
       { passive: false },
     );
+  }
+
+  /** ระยะขยับ (พิกเซล) ที่ยังนับเป็นการแตะ — นิ้วสั่นมากกว่าเมาส์ */
+  private slop(): number {
+    return this.pointerType === 'touch' ? 10 : 4;
   }
 
   /** ยกเลิกการกดค้าง (เช่น เมื่อมีหน้าต่างคำอธิบายเด้งขึ้น) */

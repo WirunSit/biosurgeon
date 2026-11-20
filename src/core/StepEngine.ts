@@ -79,6 +79,13 @@ export class StepEngine {
   get current(): StepDef | null {
     return this.steps[this.i] ?? null;
   }
+  /** เป้าหมายที่ขั้นนี้รอให้แตะ (ขั้นแบบ sequence = ชิ้นถัดไป) — ใช้ช่วยเล็งบนจอสัมผัส */
+  get expectedTarget(): string | null {
+    const step = this.current;
+    if (!step) return null;
+    if (step.action === 'sequence') return step.targets?.[this.st.seqIdx] ?? null;
+    return step.target ?? null;
+  }
   get index(): number {
     return this.i;
   }
@@ -109,7 +116,7 @@ export class StepEngine {
     if (!step || !this.enabled || step.action === 'choice' || step.action === 'minigame') return;
     const onField = hit.targetId !== null && hit.targetId !== 'drape';
     if (!tool) {
-      if (onField) this.hooks.info('หยิบเครื่องมือจากถาดด้านขวาก่อนนะคะหมอ', 'nurse');
+      if (onField) this.hooks.info('หยิบเครื่องมือจากถาดเครื่องมือก่อนนะคะหมอ', 'nurse');
       return;
     }
     if (!onField) return;
