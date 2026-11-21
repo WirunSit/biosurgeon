@@ -26,6 +26,8 @@ export interface DeviceProfile {
   lightTissue: boolean;
   /** หมุนมุมมองได้จำกัด (โทรศัพท์) แทนหมุนรอบตัว */
   limitedOrbit: boolean;
+  /** ลดความละเอียดอัตโนมัติเมื่อเฟรมตก — คอมพิวเตอร์ปิดไว้ (คงความคมชัดเต็มที่ตามคำขอของครู) */
+  adaptive: boolean;
 }
 
 const KIND_NAMES: Record<DeviceKind, string> = { phone: 'โทรศัพท์', tablet: 'แท็บเล็ต', desktop: 'คอมพิวเตอร์' };
@@ -66,7 +68,7 @@ function build(base: { kind: DeviceKind; touch: boolean; ios: boolean }, pref: Q
     medium: { maxDpr: Math.min(dpr, 1.5), minDpr: 0.75, fpsCap: 60, shadows: true, lightTissue: true },
     high: { maxDpr: Math.min(dpr, 1.5), minDpr: 0.6, fpsCap: 60, shadows: true, lightTissue: false },
   }[quality];
-  return { ...base, pref, quality, ...q, limitedOrbit: base.kind === 'phone' };
+  return { ...base, pref, quality, ...q, limitedOrbit: base.kind === 'phone', adaptive: base.kind !== 'desktop' };
 }
 
 const base = detectKind();

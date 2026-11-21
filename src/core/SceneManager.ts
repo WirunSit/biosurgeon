@@ -181,6 +181,8 @@ export class SceneManager {
 
   /** ถ้าทำเฟรมไม่ทันเพดาน ลดความละเอียดการเรนเดอร์ลงทีละขั้น ถ้าเหลือเฟือค่อยเพิ่มกลับ */
   private adaptResolution(dt: number, now: number): void {
+    // คอมพิวเตอร์: ความละเอียดคงที่ตามระดับกราฟิก (ไม่ลดเองตอนเฟรมตก)
+    if (!device.adaptive) return;
     if (this.covered) {
       this.fpsTime = 0;
       this.fpsFrames = 0;
